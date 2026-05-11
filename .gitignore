@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+data/saves/
+data/sounds/
+*.png
+*.jpg
+*.jpeg
+*.bak
+*.tmp
+*_new.md

@@ -1,0 +1,450 @@
+{
+  "chapter": 3,
+  "title": "第3章 · 深入",
+  "start_node": "ch03_start",
+  "nodes": [
+    {
+      "node_id": "ch03_start",
+      "chapter": 3,
+      "day": 4,
+      "text": "第四天。\n\n你不知道该不该用\"习惯\"这个词。但早上起来的时候，你没有像前几天那样在床边坐很久。你直接起床，洗脸，下楼。\n\n张海生在走廊尽头的窗前站着。他的背影被晨光衬成一个黑的剪影。听到你的脚步，他转过身。\n\n\"今天的高处作业。\"他说，\"直升机平台下方的外壁有两块防护网松了。需要人上去加固。\"\n\n你往窗外看了一眼。平台在塔顶——8层高。海风从那个高度打下来，能把没站稳的人掀翻。\n\n\"我去。\"你说。\n\n他看了你两秒。那个眼神和第一天不同——不再是评估，是别的什么。\n\n\"你有高空经验吗。\"\n\n你没有。",
+      "choices": [
+        {
+          "label": "坚持自己上去——不能什么都靠他",
+          "next_node": "ch03_platform",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": 2,
+            "loyalty": 1
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "承认经验不足，让他来完成",
+          "next_node": "ch03_platform_esc",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": -1,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "tension"
+    },
+    {
+      "node_id": "ch03_platform",
+      "chapter": 3,
+      "day": 4,
+      "text": "张海生给你套上了安全绳。他检查了两遍锁扣——用他自己的手，不是叫你自己看。\n\n\"绳子固定在中央柱的主环上。\"他指向平台中央一个锈迹斑斑的金属环，\"不管你滑到哪边，绳子都会拉住你。前提是——\"\n\n他停了一下。\n\n\"——你相信它。\"\n\n你从塔顶的舱口爬出去。风立刻灌满了你的衣服。平台边缘没有护栏，直接连着八层楼高的空气。你每走一步，脚下的钢板就发出沉闷的回响。\n\n防护网挂在栏杆外侧——其中两块被海风扯脱了挂钩，正垂在半空中，像两条巨大的、正在死去的鱼。\n\n你跪下来，开始重新挂钩。",
+      "choices": [
+        {
+          "label": "集中注意力，一步步完成加固",
+          "next_node": "ch03_platform_self",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 1,
+            "trust": 1,
+            "survival_will": 1,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "手在发抖，喊他上来帮忙",
+          "next_node": "ch03_platform_esc",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": -1,
+            "survival_will": -1,
+            "loyalty": -1
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "tension"
+    },
+    {
+      "node_id": "ch03_platform_self",
+      "chapter": 3,
+      "day": 4,
+      "text": "你握着扳手，趴在平台边缘，把第一块防护网的挂钩对上。\n\n海风从下方往上灌，带着盐粒打在你的眼睛里。你眯着眼，用膝盖压住网子的下沿，右手拧螺栓。第一颗——紧了。第二颗——也紧了。\n\n你往后缩了半米，把安全绳往自己身边拽了拽。绳子绷直的时候，你感觉到中央柱上的主环没有一丝松动。\n\n你相信了它。\n\n加固完成之后，你从舱口爬下来。张海生站在梯子下面，手里什么都没有拿。但你看到了他的指节——刚才握拳握得太紧，指关节还是白的。\n\n\"做好了。\"你说。\n\n\"看到了。\"他说。那是你第一次听他用不是\"好\"而是\"看到了\"来回应一件事。",
+      "choices": [
+        {
+          "label": "休息一下，下午继续工作",
+          "next_node": "ch03_d4_evening",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "quiet"
+    },
+    {
+      "node_id": "ch03_platform_esc",
+      "chapter": 3,
+      "day": 4,
+      "text": "张海生没有说\"早该让我来\"。他只是接过你的安全绳，自己扣上，从舱口钻了出去。\n\n你在下面等着。听着头顶钢板的回响——他的脚步比你更重，更稳，每一步都没有犹豫。\n\n不到二十分钟他就下来了。手套上蹭了一层锈。\n\n\"行了。\"他把扳手放回工具箱。\n\n你站在旁边，想说点什么。谢谢——太轻了。对不起——太重了。最后你什么都没说。\n\n张海生从你身边走过去的时候，他的肩膀擦过你的手臂。不是故意的。但他没有避开。",
+      "choices": [
+        {
+          "label": "休息一下，下午继续工作",
+          "next_node": "ch03_d4_evening",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "tension"
+    },
+    {
+      "node_id": "ch03_d4_evening",
+      "chapter": 3,
+      "day": 4,
+      "text": "下午你们一起清理了底层的储藏室。\n\n这个房间你第一天就见过——堆着备用锚链、防锈油漆桶和应急食水。但这一次你注意到了一个你之前忽略的东西：墙角有一扇低矮的铁门。\n\n\"那是地下室入口。\"张海生看见你在看那扇门，声音很平，\"塔下面还有一层——以前是设备井。后来封了。\"\n\n\"为什么要封？\"\n\n他没有立刻回答。他把一桶油漆搬到架子上，拍了拍手上的灰。\n\n\"没什么东西需要下去了。\"他说。\n\n[pause 1.5]\n\n你看着那扇铁门。它上面没有锁——只有一个生锈的插销。你可以拉开的。你想象了一下拉开之后的样子。\n\n你没有动。不是不敢。是你觉得他没有把话说完。",
+      "choices": [
+        {
+          "label": "问他：被封之前，下面有什么",
+          "next_node": "ch03_d5_start",
+          "effects": {
+            "curiosity": 2,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "在心里记下这扇门的位置",
+          "next_node": "ch03_d5_start",
+          "effects": {
+            "curiosity": 1,
+            "sanity": 0,
+            "trust": -1,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "tension"
+    },
+    {
+      "node_id": "ch03_d5_start",
+      "chapter": 3,
+      "day": 5,
+      "text": "张海生没有回答那扇门的事。他把最后一桶油漆码好，拍了拍手上的灰——那个动作像是在给对话盖章。晚饭你吃得很少。夜里你醒了两次。\n\n第五天。\n\n张海生早上跟你说他要去检查塔灯——透镜组需要清理。他让你自己安排上午的工作。\n\n你不知道他是故意的还是偶然。但他留给了你整整一个上午的独处时间。\n\n你站在储藏室里，面前是那扇低矮的铁门。\n\n插销上积了很厚的灰——至少几个月没有人动过。但你又注意到一件事：插销旁边的地面上，灰尘的分布不均匀。有一小片区域——大概一只手掌那么大——灰尘比周围薄很多，像是曾经有什么东西在上面放过，又被拿走了。\n\n你拉开了插销。",
+      "choices": [
+        {
+          "label": "打开铁门，沿梯子往下走",
+          "next_node": "ch03_storage_found",
+          "effects": {
+            "curiosity": 2,
+            "sanity": -1,
+            "trust": 0,
+            "survival_will": 1,
+            "loyalty": -1
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "tension"
+    },
+    {
+      "node_id": "ch03_storage_found",
+      "chapter": 3,
+      "day": 5,
+      "text": "铁门后面是一段很陡的铁梯子。\n\n你一级一级下去。空气变得比以前重——不是潮，是闷。像是这个空间已经很久没有被呼吸过。\n\n地下室的面积不大，大约十平方。一面墙是裸露的混凝土——塔基直接打进海里的那部分。你能听到海水在外面挤压塔身的声音。\n\n角落里有一个旧木架，上面放着几件工具——一把锈得不能用的锯子，一个没有灯芯的老式煤油灯。还有一只防水铁盒。\n\n铁盒不大，一只鞋盒的尺寸。你打开它。\n\n里面是一本日记。\n\n封皮是棕色的麻布面，被海风蚀得卷了边。翻开第一页，钢笔字——繁体，竖排——墨迹已经变成深棕色。落款日期写着：1932年10月。\n\n你蹲在地下室里，借着头顶铁门漏下来的那一点光，开始读。",
+      "choices": [
+        {
+          "label": "仔细阅读日记的第一段",
+          "next_node": "ch03_d5_search",
+          "effects": {
+            "curiosity": 2,
+            "sanity": -1,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "dread"
+    },
+    {
+      "node_id": "ch03_d5_search",
+      "chapter": 3,
+      "day": 5,
+      "text": "日记里记录的不是天气和水位。\n\n前任守塔人——一个没有留下名字的人——写到他发现灯塔在每年十月开始\"呼吸\"。他用的是\"呼吸\"这两个字。他说他听过那个声音，不是海浪，不是机器，是从塔的中央柱传出来的。\n\n他还说——他回了信。用笔，在纸上写字，回复那个声音。\n\n你读到这里的时候，感觉到自己握纸的手在轻微发抖。不是害怕。是一种你从来没有体验过的、像被确认了什么东西一样的感觉。\n\n地下室的地面上有一些痕迹——不是脚印，是一道一道横向的刮痕，从前面的墙一直延伸到木架下面。那些刮痕很旧，但你又隐约觉得，它们不该出现在这里。\n\n因为这道刮痕的方向，朝着的那面墙——\n\n你把手放在混凝土墙面上。冰凉的。然后用指节敲了一下。\n\n[pause 1.0]\n\n声音不对。不是实心墙该有的回声。是空洞——墙后面有空间。",
+      "choices": [
+        {
+          "label": "想办法打开这面墙",
+          "next_node": "ch03_basement_find",
+          "effects": {
+            "curiosity": 2,
+            "sanity": -1,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "先离开，等张海生回来再告诉他",
+          "next_node": "ch03_d5_evening",
+          "effects": {
+            "curiosity": -1,
+            "sanity": 1,
+            "trust": 1,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "dread"
+    },
+    {
+      "node_id": "ch03_basement_find",
+      "chapter": 3,
+      "day": 5,
+      "text": "你用锯子的木柄敲击墙面。\n\n听声辨位——空心的区域大概一米宽，一米八高。刚好是一扇门的大小。\n\n你仔细看墙面，发现了一个你之前漏掉的东西：砖缝在某个位置不是完全对齐的。有一小段——大约一掌宽——水泥的颜色比周围浅。是后来才补上去的。\n\n补得不专业。也许补它的人根本不想补好。\n\n你用锯子的尖端沿着那条线刮。干燥的水泥碎片一点一点剥落。下面的砖是松的。\n\n你取下了第一块砖。后面是黑暗。\n\n不是普通的黑暗——不是没有光的那种。是有东西在那个黑暗里面的那种。你能感觉到空气从那个巴掌大的砖孔里流进来，比你身后的空气更冷，更湿，带着一种说不清的、有机的气味。\n\n像活物的呼吸。\n\n[shake]它就在那面墙的后面。等着。[/shake]",
+      "choices": [
+        {
+          "label": "继续拆墙，进去看",
+          "next_node": "ch03_basement_enter",
+          "effects": {
+            "curiosity": 2,
+            "sanity": -2,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": {
+            "count": 3,
+            "texts": [
+              "再拆一块砖……",
+              "这不是应该有的空间……",
+              "把砖掀开，钻过去了"
+            ]
+          }
+        },
+        {
+          "label": "停手——这个空间不对",
+          "next_node": "ch03_d5_evening",
+          "effects": {
+            "curiosity": -1,
+            "sanity": 1,
+            "trust": 0,
+            "survival_will": 1,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "dread"
+    },
+    {
+      "node_id": "ch03_basement_enter",
+      "chapter": 3,
+      "day": 5,
+      "text": "你从那个口子钻了进去。\n\n这个空间不应该存在。你在灯塔的任何一张结构图上都没有见过它。\n\n它不是地下室的一部分。它不是任何被设计和建造出来的东西。它是一段夹层——嵌在塔基和外壁之间，像是混凝土浇灌的时候故意留出来的。或者说，像是什么东西在混凝土凝固之前，用身体撑开了一个位置。\n\n空间的两侧墙壁上布满了痕迹。不是霉菌——是一行一行的字。用某种深色液体写的——不是墨水，不是油漆——已经干透了，变成了暗褐色。\n\n你认出了那个笔迹。\n\n日记上的笔迹。\n\n最上面一行写着：\"我在这里。我不曾离开。\"\n\n底下是一行又一行重复的同一个字。那个字，你还没读到——但你已经知道它是什么了。\n\n你退了出去。不是跑。是倒退着，一步一步，盯着那个砖孔，直到你的后背撞上地下室的铁梯。",
+      "choices": [
+        {
+          "label": "爬回储藏室，合上所有东西",
+          "next_node": "ch03_d5_evening",
+          "effects": {
+            "curiosity": 2,
+            "sanity": -2,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "dread"
+    },
+    {
+      "node_id": "ch03_d5_evening",
+      "chapter": 3,
+      "day": 5,
+      "text": "你坐在储藏室的地上。铁门已经关上了。插销已经插回去了。\n\n你的手还在抖。不是因为刚才在墙上看到的字——是因为那个字让你想起了一样你没法确定的东西。\n\n张海生从楼上下来的时候，表情有一瞬间的变化。他看到了你坐在地上，看到了你膝盖上的灰，看到了铁门把手上被擦掉的那一块锈。\n\n\"你下去了。\"他说。\n\n这不是疑问句。\n\n\"下面有一间夹层。\"你说，\"墙上写了字。\"\n\n张海生没有说话。他站在那里，手垂在身体两侧。你看到他做的动作——他的右手握成了拳，又松开了。\n\n[pause 1.5]\n\n\"我十年前下去过一次。\"他终于开口，声音比平时轻，\"看到之后就把门封了。封得不好。我知道迟早有人会再打开。\"\n\n他看了你一眼。那个眼神里有一种你之前没有见过的东西——不是愤怒，不是恐惧，是一个在海上救过人的人，看见水里有另一个人的时候，要从甲板上往下跳之前的那一瞬间的犹豫。",
+      "choices": [
+        {
+          "label": "继续追问张海生——下面到底是什么",
+          "next_node": "ch03_d6_start",
+          "effects": {
+            "curiosity": 1,
+            "sanity": 0,
+            "trust": 1,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "给他沉默——让他自己选择要不要说",
+          "next_node": "ch03_d6_start",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 2,
+            "survival_will": 0,
+            "loyalty": 1
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "loss"
+    },
+    {
+      "node_id": "ch03_d6_start",
+      "chapter": 3,
+      "day": 6,
+      "text": "张海生站在储藏室的昏暗里，很久没有动。你不知道他是在回忆、还是在决定。最后他走过去把铁门的插销重新插上了——那个声音比任何一句话都重。你回到房间，在床上睁着眼睛，听着海浪把塔基敲了一整夜。\n\n第六天。\n\n你没有睡觉。从天黑到天亮，你躺在床上一动不动，听海浪挤压塔基的声音。\n\n你想起日记里的那句话：\"它很耐心。它比海还耐心。\"\n\n早上的时候张海生敲了你的门。你打开——他站在门口，手里拿着两个搪瓷杯。一杯是他的，一杯是你的。他把你的那杯递给你。\n\n\"你想再下去一次吗。\"他说。\n\n你接过杯子。茶很烫。\n\n\"这次我陪你。\"\n\n你觉得他说这句话的时候，用了很大的力气。",
+      "choices": [
+        {
+          "label": "和他一起再下去一次",
+          "next_node": "ch03_d6_explore",
+          "effects": {
+            "curiosity": 1,
+            "sanity": 0,
+            "trust": 2,
+            "survival_will": 1,
+            "loyalty": 1
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "自己一个人再下去——有些事需要独自面对",
+          "next_node": "ch03_d6_explore",
+          "effects": {
+            "curiosity": 2,
+            "sanity": -1,
+            "trust": -1,
+            "survival_will": 1,
+            "loyalty": -1
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "loss"
+    },
+    {
+      "node_id": "ch03_d6_explore",
+      "chapter": 3,
+      "day": 6,
+      "text": "地下室的夹层在白天和夜晚看起来完全不同。\n\n有了手电筒的光，墙上的字看得更清楚了。不只是一面墙——三面墙都有。字越往下越密，越往下越急促，像是写的人到后面已经不是在写了，是在把字往墙里摁。\n\n你读到日记的第二段。是关于\"规则\"的。\n\n它不想要动物。它知道活物和人的区别。它在等。\n\n你把日记摊开在手电筒的光下面。张海生站在你身后——也可能你是一个人下来的，身后的空间空荡荡的，让你比任何时候都更确定这里还有别人——他看的是墙。他的视线在墙上那行\"我在这里\"上停住了。\n\n\"这是他写的。\"张海生说。\n\n\"谁？\"\n\n他没有回答。",
+      "choices": [
+        {
+          "label": "在地下室继续搜索——有没有别的线索",
+          "next_node": "ch03_d6_belongings",
+          "effects": {
+            "curiosity": 1,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "dread"
+    },
+    {
+      "node_id": "ch03_d6_belongings",
+      "chapter": 3,
+      "day": 6,
+      "text": "你在夹层最深处的角落里找到了一样东西。\n\n一只帆布书包。\n\n书包的带子已经朽了——手一碰就断。但包本身还保持着形状，像它还记着自己曾经装着什么。你打开搭扣。\n\n里面有一本中学课本——物理。封面上写着\"张望潮\"。字迹歪歪扭扭，和你在配电室抽屉里看到的那张画上的一模一样。\n\n还有一个玻璃牛奶杯。洗得很干净，连杯底都没有水垢。像是放进去之前被仔细擦过的。\n\n你转过身看着张海生。他站在几步之外，看着你手里的书包。他的脸上没有表情。但你看他眼睛的时候，觉得自己在看一个被抽走了什么东西的人——不是突然抽走的，是很久了，久到他习惯了这个空洞的重量。\n\n[pause 2.0]\n\n他没有过来拿。\n\n你小心地把书包放回原处，把杯子摆在它旁边。",
+      "choices": [
+        {
+          "label": "握住张海生的手臂——什么也别说",
+          "next_node": "ch03_d6_evening",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 2,
+            "survival_will": 0,
+            "loyalty": 2
+          },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "在他的沉默里不动——让空间替他说话",
+          "next_node": "ch03_d6_evening",
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 1,
+            "survival_will": 0,
+            "loyalty": 1
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "mood": "loss"
+    },
+    {
+      "node_id": "ch03_d6_evening",
+      "chapter": 3,
+      "day": 6,
+      "text": "你们从地下室出来之后，谁都没有说话。\n\n张海生把铁门的插销重新插好。然后他做了一件你没想到的事——他从工具架上拿了一截铁丝，绕在了插销扣上。不是锁。是让别人知道至少他试过了。\n\n你们坐在厨房里。他把剩下的茶又热了一遍。\n\n\"灯塔不会放过任何人的。\"他说。这句话很轻，像在说给自己听。\n\n你看着他握着茶杯的手。那双能在四十米高空徒手拧紧螺栓的手，此刻在微微发抖。不是冷的。\n\n[pause 1.5]\n\n[shake]你开始明白一件事：他从一开始就知道你在找什么。[/shake]\n\n不——他不需要知道。他已经看过其它人走过同样的路。现在他只是在等着看你走到哪一步。\n\n窗外的月光把海面切碎了。你把茶喝完，推回杯子。\n\n\"明天见，\"你说。\n\n他点了点头。\n\n明天。第7天。",
+      "choices": [
+        {
+          "label": "回房间——明天不是你一个人的",
+          "next_node": null,
+          "effects": {
+            "curiosity": 0,
+            "sanity": 0,
+            "trust": 0,
+            "survival_will": 0,
+            "loyalty": 0
+          },
+          "conditions": null,
+          "multi_click": null
+        }
+      ],
+      "auto_next": "ch04_start",
+      "is_chapter_end": true,
+      "mood": "loss"
+    }
+  ]
+}

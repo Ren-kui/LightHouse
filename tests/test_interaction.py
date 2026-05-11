@@ -1,0 +1,139 @@
+# -*- coding: utf-8 -*-
+"""
+test_interaction.py —— 交互状态机交叉测试
+覆盖跨模块交互盲区：面板 × 暂停计时 / 面板 × 逐字打印 / 光点 tuple 一致性。
+
+这些测试不操作 GUI，只验证内部状态机在交叉条件下的行为正确性。
+对应 fd_selfcheck.md 的交互矩阵（X1~X6）。
+"""
+
+import os
+import sys
+import tkinter as tk
+import unittest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from main_window import MainWindow
+from minigame_base import MG2_SolarReaction
+
+
+class TestInteractionPanelPause(unittest.TestCase):
+    """面板 + 暂停计时 交叉场景（X2/X3）"""
+
+    def setUp(self):
+        self.root = tk.Tk()
+        self.root.withdraw()
+        self.win = MainWindow(self.root)
+
+    def tearDown(self):
+        self.root.destroy()
+
+    def test_show_panel_cancels_pause_job(self):
+        """X2: 暂停倒计时中按 Tab → 计时器取消"""
+        self.win._is_pausing = True
+        self.win._pause_job = "fake_timer_id"
+        self.win._show_panel()
+        self.assertIsNone(self.win._pause_job,
+            "面板打开后 _pause_job 应为 None（计时器已取消）")
+
+    def test_finish_pause_blocked_when_panel_open(self):
+        """X3: 面板打开时暂停计时到期 → 文本不推进"""
+        self.win._panel_open = True
+        self.win._chunks = ["块1", "块2"]
+        self.win._chunk_idx = 0
+        self.win._is_pausing = True
+        self.win._pause_job = None
+        self.win._finish_pause()
+        self.assertEqual(self.win._chunk_idx, 0,
+            "面板打开时 _finish_pause 不应推进 chunk_idx")
+
+    def test_show_panel_pauses_typewriter(self):
+        """X1: 逐字打印中按 Tab → 打字暂停"""
+        self.win._is_typing = True
+        self.win._typewriter_job = "fake_timer_id"
+        self.win._show_panel()
+        self.assertIsNone(self.win._typewriter_job,
+            "面板打开后 _typewriter_job 应为 None（打字已暂停）")
+
+    def test_text_advance_blocked_when_panel_open(self):
+        """X1: 面板打开时按键 → 文本不推进"""
+        self.win._panel_open = True
+        self.win._chunks = ["块1", "块2"]
+        self.win._chunk_idx = 0
+        result = self.win._on_text_advance()
+        self.assertEqual(result, "break",
+            "面板打开时 _on_text_advance 应返回 'break'")
+        self.assertEqual(self.win._chunk_idx, 0,
+            "面板打开时不应推进 chunk_idx")
+
+    def test_pause_blocked_by_panel_in_on_text_advance(self):
+        """X2: 暂停中且面板打开时按键 → 不应双重推进"""
+        self.win._panel_open = True
+        self.win._is_pausing = True
+        self.win._pause_job = "fake"
+        self.win._chunks = ["块1", "块2"]
+        self.win._chunk_idx = 0
+        # 面板打开时 space 事件被第一行 _panel_open 拦截
+        result = self.win._on_text_advance()
+        self.assertEqual(result, "break")
+        # 不应进入 _is_pausing 分支（因为 _panel_open 先拦截）
+        self.assertTrue(self.win._is_pausing or self.win._chunk_idx == 0)
+
+
+class TestInteractionMinigameDot(unittest.TestCase):
+    """MG2 光点 tuple 一致性验证（X4 场景）"""
+
+    def setUp(self):
+        self.root = tk.Tk()
+        self.root.withdraw()
+        frame = tk.Frame(self.root)
+        frame.pack()
+        self.mg = MG2_SolarReaction(frame)
+        self.mg._running = True
+
+    def tearDown(self):
+        self.mg.destroy()
+        self.root.destroy()
+
+    def test_current_dot_tuple_length(self):
+        """B013: _current_dot 赋值和解包必须一致（5 元组）"""
+        self.mg._current_dot = (100, 100, 20, "inner_id", "outer_id")
+        # 构造一个带 x/y 的事件对象（不通过 Tkinter 事件循环）
+        class MockEvent:
+            x = 105
+            y = 105
+        try:
+            self.mg._on_click(MockEvent())
+        except ValueError as e:
+            self.fail("_on_click 解包错误: {}".format(e))
+
+    def test_hit_dot_unpack(self):
+        """_hit_dot 解包与 _current_dot 一致"""
+        self.mg._current_dot = (100, 100, 20, "inner_id", "outer_id")
+        try:
+            self.mg._hit_dot()
+        except Exception as e:
+            self.fail("_hit_dot 失败: {}".format(e))
+
+    def test_miss_dot_unpack(self):
+        """_miss_dot 解包与 _current_dot 一致"""
+        self.mg._current_dot = (100, 100, 20, "inner_id", "outer_id")
+        try:
+            self.mg._miss_dot()
+        except Exception as e:
+            self.fail("_miss_dot 失败: {}".format(e))
+
+    def test_no_crash_on_click_without_dot(self):
+        """_on_click 在当前无光点时不应崩溃"""
+        self.mg._current_dot = None
+        class MockEvent:
+            x = 0
+            y = 0
+        try:
+            self.mg._on_click(MockEvent())
+        except Exception as e:
+            self.fail("无光点状态下 _on_click 不应崩溃: {}".format(e))
+
+
+if __name__ == "__main__":
+    unittest.main()
