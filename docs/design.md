@@ -110,6 +110,27 @@
 
 判定：直接分流 / 阈值判定 / 组合判定
 
+### 第 4-5 章关键 effects 表（GD + ND 对齐）
+
+| 节点 | 条件/选择 | effects | 备注 |
+|------|----------|---------|------|
+| ch04 张海生坦白 | trust≥6 → 他告诉我了 | trust+1, curiosity+1 | 信息路径 |
+| | trust<6 → 他还在瞒我 | trust-1, survival_will+1 | 隐瞒路径 |
+| ch04 梦境 | "跟着父亲走" | curiosity+2, sanity-2 | 塔的诱惑 |
+| | "转身醒来" | survival_will+2, sanity-1 | 对抗诱惑 |
+| ch04 MG4-A 海鸟 | 成功 | survival_will+1, trust+1 | 扛住了 |
+| | 失败 | sanity-2 | 被击中 |
+| ch04 隐藏道具 | survival_will≥8 | flag: found_dad_logbook | 黑暗收缩终点 |
+| | curiosity≥7 | flag: found_wangchao_drawing | 水彩画浮现 |
+| ch04 MG4-B | survival_will≥8 | 难度降一档 | 意志坚定 |
+| | loyalty≤2 | 难度升一档 | 孤立无援 |
+| ch05 日记撕页 | loyalty≥4 → 展示 | flag: found_diary_page, trust+1 | 张海生坦白 |
+| | loyalty<4 → 隐瞒 | trust-1 | 保持距离 |
+| ch05 合作/对抗 | trust≥6+loyalty≥4 | trust+1, loyalty+1（合作） | 约好一起对抗 |
+| | trust≤4+loyalty≤3 | trust-1, survival_will+1（对抗） | 独自求生 |
+| ch05 离开选项 | survival_will≥8+sanity≤4+trust≤4 | → ch05_early_escape（结局E入口） | 提前逃离 |
+| ch05 MG5 | 合作路线 | 张海生辅助 | V2 不对称收缩 |
+
 ---
 
 ## 2.4 小游戏体系
@@ -126,13 +147,36 @@
 
 ## 2.5 结局
 
-| 结局 | 条件 |
-|------|------|
-| A | 高好奇心+低理智 -> 疯狂 |
-| B | 高好奇心+高理智+高信任 -> 逃离 |
-| C | 低好奇心+高理智 -> 平安离开 |
-| D | 低信任+低忠诚 -> 被抛弃 |
-| E | 特定组合待定 |
+### 判定优先级
+
+隐藏道具三件集齐 > MG4/MG5死亡 > 变量组合判定
+
+### 结局触发条件（GD + ND 对齐 · 2026-05-11）
+
+| 优先级 | ID | 结局 | 判定条件 | 可达路径 |
+|--------|----|------|---------|---------|
+| 1 | **G** | 荒诞 · 被带走 | flags: found_diary_page + found_wangchao_drawing + found_dad_logbook 全 True | curiosity≥7（水彩画）+ survival_will≥8（日志）+ loyalty≥4（撕页） |
+| 2 | **death** | 灯塔未解死亡报告 | MG4-B 或 MG5 失败 | — |
+| 3 | **F** | 被背叛 · 死在黑暗里 | curiosity≥7 + sanity≤3 + trust≤3 + loyalty≤2 | 高好奇路径 + 全选降信任/降忠诚 |
+| 4 | **A** | 疯狂 · 独自对话 | curiosity≥7 + sanity≤3 + (trust≥5 或 loyalty≥3) | 高好奇但留了一条人际关系 |
+| 5 | **E** | 提前逃离 · 永不知答案 | survival_will≥8 + sanity≤4 + trust≤4（ch05 特殊节点） | 高生存 + 低信任 |
+| 6 | **B** | 一起逃离 · 他断开关 | curiosity≥6 + sanity≥6 + trust≥7 + loyalty≥4 | 高好奇但避开伤害理智的选项 |
+| 7 | **D** | 被杀 · 离开前一夜 | curiosity≤3 + sanity≥6 + trust≤3 + loyalty≤2 | 保守但孤立（必须在 C 前判定） |
+| 8 | **C** | 平安离开 · 什么也没意识到 | curiosity≤3 + sanity≥6 | 全程保守路径 |
+
+### 结局表现形式
+
+**递进链**：每个结局的正文由 3-5 个纯文字节点 + 单选"继续..."构成（`is_ending_chain: true`）。引擎进入结局链后切换到只读模式——禁面板/Tab/存档/GM。最后节点显示结局画面。
+
+### 隐藏道具 X
+
+| 道具 | flag 名 | 获取节点 |
+|------|---------|---------|
+| 撕去的日记页 | `found_diary_page` | ch05_talk_zhang (loyalty≥4) |
+| 张望潮的水彩画 | `found_wangchao_drawing` | ch04_return_drawer (curiosity≥7) |
+| 父亲的航海日志 | `found_dad_logbook` | ch04_darkness_end (survival_will≥8) |
+
+三件全齐 → 结局 G。
 
 ---
 
@@ -287,7 +331,7 @@ main.py               Game类入口 + FSM
 
 ## 4.2 JSON格式
 
-node_id/chapter/day/mood(可选:dread/tension/loss/quiet,缺省=关闭)/text(按\n\n分块)/choices(effects+conditions+multi_click)/auto_next/is_chapter_end/text_bridges(按前置节点匹配承接桥段，key=源node_id，value=桥文本，"*" 为 fallback)
+node_id/chapter/day/mood(可选:dread/tension/loss/quiet,缺省=关闭)/text(按\n\n分块)/choices(effects+conditions+multi_click)/auto_next/is_chapter_end/is_ending_chain(结局链标记,单选自动推进+只读模式)/text_bridges(按前置节点匹配承接桥段)
 
 ---
 

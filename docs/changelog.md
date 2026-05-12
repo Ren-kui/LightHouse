@@ -113,7 +113,11 @@
 | 2026-05-11 | docs/work_standards.md | 更新 | W001 新增「文件入库」条款：新文件须入 changelog，根目录脚本须入 progress 清单 |
 | 2026-05-11 | docs/progress.md | 更新 | M5 正式任务表追加：FD 标记叠加回归测试、darkness_overlay 模块、SD 5 音效实现、ND [sound] 预标 |
 | 2026-05-11 | docs/nd_selfcheck.md | 新建 | ND 剧情自检清单：8 项叙事检查 + 交付声明模板 + 变更通知模板 |
-| 2026-05-11 | docs/agents.md | 更新 | ND P4 从 `—` 改为剧情自检原则（玩家视角通读全分支） |
+| 2026-05-11 | docs/agents.md | 更新 | 角色表扩展 P6 列；ND 新增 P6 句式多样性（比喻句式每节点≤1处）；优先级延至 P6 |
+| 2026-05-11 | src/state_manager.py | 更新 | `describe()` 新增 `day` 参数，trust/curiosity/sanity 描述按天数分段返回，消除早期天预知感 |
+| 2026-05-11 | src/main.py | 更新 | `_refresh_panel` 调用 `describe()` 时传入 `self.story.day` |
+| 2026-05-11 | tests/test_state_manager.py | 更新 | trust 描述测试同步到新文案 |
+| 2026-05-11 | docs/optimizations.md | 新增 | OPT-14: 备忘录支持前后文翻阅 + 下划线/颜色标记重点文字（轻度优化，M6执行） |
 | 2026-05-11 | docs/work_standards.md | 更新 | W003 新增「ND 自检声明」条款；关联文档补注 nd_selfcheck.md |
 | 2026-05-11 | data/chapter_01.json | 优化 | ND: ch01_evening 开门改为完整下午垫片——覆盖设备学习/翻抽屉/独探三条分支路径（"下午的时间在塔里过得很快——不管你是…"） |
 | 2026-05-11 | data/chapter_01.json | 优化 | ND: ch01_evening 开头加行为垫句 "你看了很久。"——选择→转场之间多一步缓冲 |
@@ -124,7 +128,11 @@
 | 2026-05-11 | data/chapter_02.json | 新增 | ch02_evening 添加 `text_bridges` 字段（3 条特定桥 + `*` fallback），正文去除通用桥段 |
 | 2026-05-11 | tests/validate_data.py | 新增 | 汇聚节点信息报告（`_report_convergence`）：打印全部被 ≥2 条路径指向的节点及来路标签，供 ND 同源异构扫描 |
 | 2026-05-11 | docs/nd_selfcheck.md | 更新 | 第 2 条拆为 2A 时间连续性/2B 动作连续性/2C 人物状态一致性；新增第 9 条同源异构路径状态一致；使用方式新增第 7 步专项扫描 |
-| 2026-05-11 | docs/nd_selfcheck.md | 更新 | 自检表第 2 项更新为来路分流 GM 验证 |
+| 2026-05-11 | src/story_engine.py | 新增 | `check_ending()` 结局判定函数——8 结局优先级链（G 隐藏道具 > death 死亡 > F > A > E > B > D > C），D 在 C 前判定避免子集覆盖 |
+| 2026-05-11 | src/main.py | 更新 | GM_PRESETS 扩至 6 组覆盖 6 个变量结局（A/B/C/D/E/F），移除无效旧预设 |
+| 2026-05-11 | docs/nd_selfcheck.md | 新增 | 第 11 条：新增 effects 终点可达性检查 |
+| 2026-05-11 | docs/design.md | 更新 | §2.3 effects 表 GD+ND 对齐（精确数字）；§2.5 优先级修正（D 移到 C 前） |
+| 2026-05-11 | — | 会议 | 结局设计讨论：ND 提出 3 件 X 道具（撕页/画/日志）+ 荒诞结局；GD 给 8 结局优先级映射；FD 确定递进链技术方案（auto_next+单选+只读模式）；QA 制 GM 预设 + 结局链验证流程 |
 | 2026-05-11 | src/main_window.py | 新增 | `MOOD_SPEEDS` 字典 + `_typewrite_delay` 动态打字速度：dread 35ms / tension 22ms / loss 40ms / quiet 30ms（默认） |
 | 2026-05-11 | src/main.py | Bug修复 | B018: `_display_node` 直接读 `node["text"]` 绕过 `get_current_text()` 中的 text_bridges 拼接逻辑，导致全部来路分流桥段静默失效。修复：改为 `self.story.get_current_text()` |
 | 2026-05-11 | tests/validate_data.py | 更新 | 新增 mood 值域检查（dread/tension/loss/quiet/None） |

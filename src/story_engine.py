@@ -93,6 +93,47 @@ class StoryEngine:
                 text = bridge + "\n\n" + text
         return text
 
+    def check_ending(self) -> str:
+        """结局判定（优先级从高到低，命中即止）。
+        返回 ending_id ('G'/'death'/'F'/'A'/'E'/'B'/'C'/'D') 或 None（未触发结局）。
+        依据 design.md §2.5 结局触发条件表。
+        """
+        # 优先级 1：隐藏道具三件集齐 → 荒诞
+        if (self.flags.get("found_diary_page")
+                and self.flags.get("found_wangchao_drawing")
+                and self.flags.get("found_dad_logbook")):
+            return "G"
+
+        # 优先级 2：MG4/MG5 死亡 → 特殊死亡
+        # 由小游戏结果直接触发，不在此处理（见 _on_minigame_complete）
+
+        c = self.state.get("curiosity")
+        s = self.state.get("sanity")
+        t = self.state.get("trust")
+        sw = self.state.get("survival_will")
+        l = self.state.get("loyalty")
+
+        # 优先级 3: F 被背叛
+        if c >= 7 and s <= 3 and t <= 3 and l <= 2:
+            return "F"
+        # 优先级 4: A 疯狂
+        if c >= 7 and s <= 3 and (t >= 5 or l >= 3):
+            return "A"
+        # 优先级 5: E 提前逃离
+        if sw >= 8 and s <= 4 and t <= 4:
+            return "E"
+        # 优先级 6: B 一起逃离
+        if c >= 6 and s >= 6 and t >= 7 and l >= 4:
+            return "B"
+        # 优先级 7: D 被杀（必须先于 C 判定——D 是 C 的子集）
+        if c <= 3 and s >= 6 and t <= 3 and l <= 2:
+            return "D"
+        # 优先级 7: C 平安离开
+        if c <= 3 and s >= 6:
+            return "C"
+
+        return None
+
     def get_available_choices(self) -> list:
         n = self.get_current_node()
         if not n:

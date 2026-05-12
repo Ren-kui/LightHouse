@@ -71,31 +71,34 @@ class StateManager:
                 return False
         return True
 
-    # ---- 隐晦描述 ----
+    # ---- 隐晦描述（按 day 分段，避免早期天出现预知性文本） ----
 
-    def describe(self, key: str) -> str:
+    def describe(self, key: str, day: int = None) -> str:
         v = self._data.get(key)
         if v is None:
             return "——"
+        if day is None:
+            day = 99  # 未传天数时用最成熟的描述
 
         if key == "curiosity":
             if v <= 2: return "我对这里发生的事没太大兴趣。"
             if v <= 4: return "我开始留意一些细节了。"
             if v <= 6: return "这里肯定有什么。我必须弄清楚。"
             if v <= 8: return "我已经没法不去想了。"
+            if day <= 6: return "有些答案不重要了。但问题还在。"
             return "我不需要答案。我就是答案的一部分。"
 
         if key == "sanity":
-            if v <= 2: return "我已经分不清了。但分不清好像也没那么糟。"
-            if v <= 4: return "我握笔的手在发抖。这不是冷的。"
-            if v <= 6: return "还能思考。还能克制。"
-            if v <= 8: return "大体上我还能正常工作。"
+            if v <= 2: return "我握笔的手在发抖。这不是冷的。" if day <= 5 else "我已经分不清了。但分不清好像也没那么糟。"
+            if v <= 4: return "还能思考。还能克制。"
+            if v <= 6: return "大体上我还能正常工作。"
+            if v <= 8: return "我没事。真的。"
             return "我没事。真的。"
 
         if key == "trust":
-            if v <= 2: return "不能相信他。他在隐瞒什么。"
-            if v <= 4: return "他只是个称职的守塔人。仅此而已。"
-            if v <= 6: return "他沉默，但他不会害我。至少现在不会。"
+            if v <= 2: return "我们只是同事。"
+            if v <= 4: return "他只是个称职的守塔人。仅此而已。" if day <= 6 else "不能相信他。他在隐瞒什么。"
+            if v <= 6: return "他还是一样地沉默。" if day <= 3 else "他沉默，但至少现在——他不会害我。"
             if v <= 8: return "这个人在我身边让我觉得安心。"
             return "他是我在这里唯一的锚。"
 

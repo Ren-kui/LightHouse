@@ -64,16 +64,20 @@ class Game:
             self.window.on_gm_open = self._refresh_gm_panel
             self.window.on_gm_load_chapter = self.cmd_gm_load_chapter
 
-        # GD 预设组合（GM 栏 v1）
+        # GD 预设组合（GM 栏 v2 · 8 结局）
         self.GM_PRESETS = [
-            {"name": "A · 高好奇+低理智", "desc": "结局 A 方向",
-             "vars": {"curiosity": 8, "sanity": 2, "trust": 5, "survival_will": 7, "loyalty": 3}},
-            {"name": "B · 高好奇+高理智+高信任", "desc": "结局 B 方向",
-             "vars": {"curiosity": 8, "sanity": 8, "trust": 8, "survival_will": 7, "loyalty": 3}},
-            {"name": "C · 低好奇+高理智", "desc": "结局 C 方向",
-             "vars": {"curiosity": 1, "sanity": 9, "trust": 5, "survival_will": 7, "loyalty": 3}},
-            {"name": "D · 低信任+低忠诚", "desc": "结局 D 方向",
-             "vars": {"curiosity": 3, "sanity": 5, "trust": 1, "survival_will": 4, "loyalty": 1}},
+            {"name": "A · 高好奇+低理智（疯狂）", "desc": "结局 A 方向",
+             "vars": {"curiosity": 8, "sanity": 2, "trust": 6, "survival_will": 7, "loyalty": 3}},
+            {"name": "B · 高好奇+高理智+高信任（一起逃离）", "desc": "结局 B 方向",
+             "vars": {"curiosity": 7, "sanity": 7, "trust": 8, "survival_will": 7, "loyalty": 5}},
+            {"name": "C · 低好奇+高理智（平安离开）", "desc": "结局 C 方向",
+             "vars": {"curiosity": 2, "sanity": 8, "trust": 5, "survival_will": 7, "loyalty": 3}},
+            {"name": "D · 低好奇+低信任+低忠诚（被杀）", "desc": "结局 D 方向",
+             "vars": {"curiosity": 2, "sanity": 7, "trust": 2, "survival_will": 7, "loyalty": 1}},
+            {"name": "E · 高生存+低信任（提前逃离）", "desc": "结局 E 方向",
+             "vars": {"curiosity": 5, "sanity": 3, "trust": 3, "survival_will": 9, "loyalty": 3}},
+            {"name": "F · 高好奇+背弃（被背叛）", "desc": "结局 F 方向",
+             "vars": {"curiosity": 8, "sanity": 2, "trust": 2, "survival_will": 7, "loyalty": 1}},
         ]
 
         # 当前状态
@@ -216,7 +220,7 @@ class Game:
         """刷新状态面板：变量描述 + 今日笔记 + 物品列表"""
         desc = {}
         for key in ["curiosity", "sanity", "trust"]:
-            desc[key] = self.state_mgr.describe(key)
+            desc[key] = self.state_mgr.describe(key, day=self.story.day)
         self.window.update_panel_status(desc)
         # 今日笔记（含章节名 + 天数）
         chapter_names = {1: "抵达", 2: "初现", 3: "深入",

@@ -120,7 +120,7 @@ class TestStateManager(unittest.TestCase):
         self.assertEqual(self.sm.describe("sanity"), "我没事。真的。")
 
     def test_describe_trust_band(self):
-        self.assertEqual(self.sm.describe("trust"), "他沉默，但他不会害我。至少现在不会。")
+        self.assertEqual(self.sm.describe("trust"), "他沉默，但至少现在——他不会害我。")
 
     # ---- 显隐分离 ----
 
