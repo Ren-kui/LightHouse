@@ -134,4 +134,5 @@
 |------|------|
 | `启动游戏.bat` | 普通模式启动（`python src\main.py %*`） |
 | `启动游戏_GM模式.bat` | GM 调试模式启动（`python src\main.py --gm`） |
+| GitHub 远程仓库 | `https://github.com/Ren-kui/LightHouse` — `git push origin master:main` |
 

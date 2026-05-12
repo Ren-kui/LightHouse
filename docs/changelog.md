@@ -158,4 +158,6 @@
 | 2026-05-11 | src/darkness_overlay.py | 新建 | 黑暗收缩覆盖层 V1（100ms帧/50s矩形收缩），MG4B/MG5共用 |
 | 2026-05-11 | src/minigame_base.py | 新增 | MG4A_SeabirdDodge 海鸟躲避（鼠标避鸟，5次闪避） |
 | 2026-05-11 | src/minigame_base.py | Bug修复 | test_interaction 编码修复：从 git 恢复原始 MG1/MG2/MG3 + 追加 MG4A（清除重复代码和 BOM 污染） |
-| 2026-05-11 | tests/run_all.py | 验证 | 87/87 全绿（含 test_interaction 9 项），5 章 JSON 验证通过 |
+| 2026-05-11 | — | 配置 | GitHub 远程仓库配置：`https://github.com/Ren-kui/LightHouse`，`git push origin master:main` |
+| 2026-05-11 | docs/progress.md | 更新 | 根目录文件清单新增 GitHub 远程仓库地址 |
+| 2026-05-11 | docs/agents.md | 更新 | 状态行更新：M5 实际进度（第 4-6 章完成/87 测试/结局引擎/MG4A/MG4B/MG5/darkness_overlay） |

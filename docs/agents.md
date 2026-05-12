@@ -6,7 +6,7 @@
 
 ---
 
-> **当前状态**：里程碑 5 🔄。M4 完成 ✅。87 测试全绿。check_ending() 8 结局判定就位。ND 启动第 4 章。FD 启动 darkness_overlay 模块。SD 启动 5 音效实现。
+> **当前状态**：里程碑 5 🔄。M4 完成 ✅。87 测试全绿。第 4-6 章文案完成，check_ending() 8 结局判定就位，MG4A/MG4B/MG5 全注册，darkness_overlay V1 可用。SD 5 音效待实现。ND 第 1-3 章隐喻清理待执行。
 
 ---
 
