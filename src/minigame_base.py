@@ -644,3 +644,96 @@ class MG3_PlatformBalance(MinigameBase):
                                text="稳定测试通过！",
                                fill="#00cc00")
         self.canvas.after(800, lambda: self._complete(True))
+
+# ============================================================
+# MG4-A · 海鸟躲避（第4章 D9）
+# ============================================================
+class MG4A_SeabirdDodge(MinigameBase):
+    TARGET_DODGES = 5
+    BIRD_COUNT = 8
+
+    def __init__(self, parent):
+        import tkinter as tk
+        super().__init__(parent)
+        self._build_ui()
+
+    def _build_ui(self):
+        import tkinter as tk
+        w = int(self.canvas["width"])
+        h = int(self.canvas["height"])
+        self.canvas.create_text(w // 2, 40, text="移动鼠标躲避海鸟",
+                                fill="#cc6600", font=("Microsoft YaHei", 12, "bold"))
+        self._score_id = self.canvas.create_text(w // 2, h - 56,
+            text=f"已躲避: 0 / {self.TARGET_DODGES}",
+            fill="#cc6600", font=("Microsoft YaHei", 10, "bold"))
+        self._px, self._py = w // 2, h // 2
+        r = 12
+        self._player_id = self.canvas.create_oval(
+            self._px - r, self._py - r, self._px + r, self._py + r,
+            fill="#e8e8e8", outline="#cc6600", width=2)
+        self.canvas.bind("<Motion>", self._on_move)
+        self.canvas.focus_set()
+        self._dodges = 0
+        self._hits = 0
+        self._birds = []
+        self._timer = None
+
+    def start(self):
+        super().start()
+        if self._running:
+            self._loop()
+
+    def _on_move(self, event):
+        if not self._running: return
+        self._px = event.x; self._py = event.y
+        r = 12
+        self.canvas.coords(self._player_id, self._px - r, self._py - r, self._px + r, self._py + r)
+
+    def _loop(self):
+        if not self._running: return
+        if len(self._birds) < self.BIRD_COUNT: self._spawn()
+        self._move_all(); self._check_hits()
+        self._timer = self.canvas.after(100, self._loop)
+
+    def _spawn(self):
+        import random
+        w = int(self.canvas["width"]); h = int(self.canvas["height"])
+        side = random.randint(0, 3)
+        if side == 0:    x, y = random.randint(0, w), -10
+        elif side == 1:  x, y = w + 10, random.randint(0, h)
+        elif side == 2:  x, y = random.randint(0, w), h + 10
+        else:            x, y = -10, random.randint(0, h)
+        r = 8
+        bid = self.canvas.create_oval(x - r, y - r, x + r, y + r,
+            fill="#444444", outline="#888888", width=1)
+        self._birds.append({"id": bid, "x": x, "y": y, "dx": (self._px - x) / 15, "dy": (self._py - y) / 15})
+
+    def _move_all(self):
+        w = int(self.canvas["width"]); h = int(self.canvas["height"])
+        for b in self._birds[:]:
+            b["x"] += b["dx"]; b["y"] += b["dy"]
+            r = 8
+            self.canvas.coords(b["id"], b["x"] - r, b["y"] - r, b["x"] + r, b["y"] + r)
+            if b["x"] < -20 or b["x"] > w + 20 or b["y"] < -20 or b["y"] > h + 20:
+                self.canvas.delete(b["id"]); self._birds.remove(b)
+                self._dodges += 1
+                self.canvas.itemconfig(self._score_id,
+                    text=f"已躲避: {self._dodges} / {self.TARGET_DODGES}")
+                if self._dodges >= self.TARGET_DODGES:
+                    self._complete(True)
+
+    def _check_hits(self):
+        r = 20
+        for b in self._birds[:]:
+            dx = b["x"] - self._px; dy = b["y"] - self._py
+            if (dx * dx + dy * dy) < r * r:
+                self._hits += 1
+                self.canvas.delete(b["id"]); self._birds.remove(b)
+                if self._hits >= 3:
+                    self._complete(False)
+
+    def _on_stop(self, running=True):
+        if running: return
+        if self._timer and self.canvas.winfo_exists():
+            self.canvas.after_cancel(self._timer); self._timer = None
+        self.canvas.unbind("<Motion>")

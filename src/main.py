@@ -21,7 +21,20 @@ from save_manager import SaveManager
 from story_engine import StoryEngine
 from main_window import MainWindow
 from sound_manager import SoundManager
-from minigame_base import MG1_PowerConnect, MG2_SolarReaction, MG3_PlatformBalance
+from minigame_base import MG1_PowerConnect, MG2_SolarReaction, MG3_PlatformBalance, MG4A_SeabirdDodge
+from darkness_overlay import DarknessOverlay
+
+# 结局路由映射（结局 ID → 章节 6 结局链首节点）
+ch06_ending_map = {
+    "G": "ch06_ending_G",
+    "death": "ch06_ending_death",
+    "F": "ch06_ending_F",
+    "A": "ch06_ending_A",
+    "E": "ch06_ending_E",
+    "B": "ch06_ending_B",
+    "C": "ch06_ending_C",
+    "D": "ch06_ending_D",
+}
 
 
 class Game:
@@ -257,6 +270,15 @@ class Game:
         if choices:
             self.window.show_choices(choices)
         else:
+            # 结局判定节点：无选项时自动执行 ending 路由
+            if node.get("is_ending_node"):
+                ending = self.story.check_ending()
+                if ending:
+                    target = ch06_ending_map.get(ending)
+                    if target:
+                        self.story.goto_node(target)
+                        self._display_node()
+                    return
             auto_next = node.get("auto_next")
             if auto_next:
                 self.window.show_choices([{"label": "继续..."}])
@@ -360,12 +382,30 @@ class Game:
         "MG1": MG1_PowerConnect,
         "MG2": MG2_SolarReaction,
         "MG3": MG3_PlatformBalance,
+        "MG4A": MG4A_SeabirdDodge,
     }
 
     def _start_minigame(self, mg_name: str):
-        """启动小游戏"""
+        """启动小游戏。MG4B 使用 DarknessOverlay 特殊处理。"""
         self._goto("MINIGAME")
         self.window.clear_choices()
+
+        # MG4B 黑暗收缩：使用 DarknessOverlay
+        if mg_name == "MG4B":
+            self._mg_instance = DarknessOverlay(self.window.minigame_area)
+            self._mg_instance.set_complete_callback(lambda: self._on_minigame_complete(True))
+            self.window.show_minigame()
+            self._mg_instance.start(duration_seconds=50)
+            return
+
+        # MG5 黑暗收缩·对抗：使用 DarknessOverlay（V2 不对称，此处暂用 V1）
+        if mg_name == "MG5":
+            self._mg_instance = DarknessOverlay(self.window.minigame_area)
+            self._mg_instance.set_complete_callback(lambda: self._on_minigame_complete(True))
+            self.window.show_minigame()
+            self._mg_instance.start(duration_seconds=45)
+            return
+
         mg_cls = self.MG_MAP.get(mg_name)
         if mg_cls is None:
             self._on_minigame_complete(False)

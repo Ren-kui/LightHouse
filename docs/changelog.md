@@ -152,4 +152,10 @@
 | 2026-05-11 | src/main_window.py | Bug修复 | B016: `show_chunked_text` 开头新增取消旧 `_typewriter_job` 和 `_pause_job`，修复快速节点切换时旧计时器在新文本上执行 |
 | 2026-05-11 | src/main_window.py | Bug修复 | B017: `_typewrite_current_chunk` shake 独块无剩余文字时不再 fall through 到通用打字分支，改为直接推进到下一块 |
 | 2026-05-11 | docs/bug_list.md | 更新 | B015~B017 修复并转入已修复表 |
-| 2026-05-11 | data/chapter_01~03.json | 优化 | ND: 5 处同源异构选择汇聚节点做兼容修复——ch02_d3_start/ch02_d3_evening/ch02_silhouette/ch01_evening(ch01_explore桥)/ch03_d6_explore |
+| 2026-05-11 | data/chapter_01~03.json | 优化 | ND: 5 处同源异构选择汇聚节点做兼容修复 |
+| 2026-05-11 | data/chapter_04.json | 新建 | ND: 第4章骨架——16节点全覆盖 D7-D9（坦白/梦境/海鸟/黑暗收缩/隐藏道具），effects+mood 预填 |
+| 2026-05-11 | data/chapter_05.json | 新建 | ND: 第5章骨架——17节点全覆盖 D10-D12（撕页/合作对抗/黑暗收缩对抗/提前逃离E链） |
+| 2026-05-11 | src/darkness_overlay.py | 新建 | 黑暗收缩覆盖层 V1（100ms帧/50s矩形收缩），MG4B/MG5共用 |
+| 2026-05-11 | src/minigame_base.py | 新增 | MG4A_SeabirdDodge 海鸟躲避（鼠标避鸟，5次闪避） |
+| 2026-05-11 | src/minigame_base.py | Bug修复 | test_interaction 编码修复：从 git 恢复原始 MG1/MG2/MG3 + 追加 MG4A（清除重复代码和 BOM 污染） |
+| 2026-05-11 | tests/run_all.py | 验证 | 87/87 全绿（含 test_interaction 9 项），5 章 JSON 验证通过 |
