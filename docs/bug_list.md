@@ -1,6 +1,6 @@
 ﻿# Bug 清单
 
-> 维护者：QA | 最后更新：2026-05-09
+> 维护者：QA | 最后更新：2026-05-12
 >
 > 关联文档：`work_standards.md` (W003)
 
@@ -34,6 +34,8 @@
 | B016 | `show_chunked_text` 不取消旧计时器——快速节点切换时旧 `_typewriter_job`/`_pause_job` 在新文本上执行 | P0 | QA | FD | 2026-05-11 | 2026-05-11 |
 | B017 | shake 独块显示 `[SHAKE_N]` 占位原文——纯 shake 无剩余文字时 fall through 到通用打字分支 | P1 | QA | FD | 2026-05-11 | 2026-05-11 |
 | B018 | `_display_node` 直接读 `node["text"]` 绕过 `get_current_text()` 中的 text_bridges 拼接，导致全部桥段静默失效 | P0 | 老板 | FD | 2026-05-11 | 2026-05-11 |
+| B019 | MG2 太阳能反应光点叠层——`_hit_dot` 与 `_miss_dot` 竞态下 `_spawn_flash` 重复调用，光点成对出现并位置叠加。在 `_clear_dot_and_next` 中 cancel 旧 `_spawn_timer` 修复 | P1 | 老板 | FD | 2026-05-12 | 2026-05-12 |
+| B020 | GM 面板关闭后滚轮 TclError——`bind_all("<MouseWheel>")` 残留绑定访问已销毁 canvas。`_hide_gm_panel` 加 `unbind_all` + lambda 加 `winfo_exists` 守卫 | P1 | 老板 | FD | 2026-05-12 | 2026-05-12 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |

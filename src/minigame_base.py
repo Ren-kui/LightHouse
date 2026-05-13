@@ -432,7 +432,7 @@ class MG2_SolarReaction(MinigameBase):
         self.canvas.itemconfig(self._score_text_id,
                                text="已捕获: {} / {}".format(self._hits, self.TARGET_HITS))
 
-        # 取消消失定时器
+        # 取消消失定时器（防止已触发时 after_cancel 操作失效的 id）
         if self._flash_timer:
             self.canvas.after_cancel(self._flash_timer)
         self._flash_timer = None
@@ -445,6 +445,7 @@ class MG2_SolarReaction(MinigameBase):
         if not self._current_dot:
             return
         self._misses += 1
+        self._flash_timer = None  # 定时器已触发，标记失效
         x, y, r, dot_inner, dot_outer = self._current_dot
         if self.canvas.winfo_exists():
             self.canvas.itemconfig(self._hint_id, text="漏掉了...")
@@ -460,6 +461,12 @@ class MG2_SolarReaction(MinigameBase):
                 self.canvas.delete(dot_outer)
         self._current_dot = None
         self._flash_timer = None
+
+        # 取消已排队的下一次刷新定时器，防止 _hit_dot 和 _miss_dot
+        # 同时调度 _clear_dot_and_next 导致重复召唤 _spawn_flash（MG2 光点叠层 bug）
+        if self._spawn_timer:
+            self.canvas.after_cancel(self._spawn_timer)
+            self._spawn_timer = None
 
         # 下一个闪烁
         self._spawn_timer = self.canvas.after(
@@ -691,8 +698,12 @@ class MG4A_SeabirdDodge(MinigameBase):
 
     def _loop(self):
         if not self._running: return
+        if not self.canvas or not self.canvas.winfo_exists():
+            return
         if len(self._birds) < self.BIRD_COUNT: self._spawn()
         self._move_all(); self._check_hits()
+        if not self.canvas or not self.canvas.winfo_exists():
+            return
         self._timer = self.canvas.after(100, self._loop)
 
     def _spawn(self):
@@ -709,6 +720,8 @@ class MG4A_SeabirdDodge(MinigameBase):
         self._birds.append({"id": bid, "x": x, "y": y, "dx": (self._px - x) / 15, "dy": (self._py - y) / 15})
 
     def _move_all(self):
+        if not self.canvas or not self.canvas.winfo_exists():
+            return
         w = int(self.canvas["width"]); h = int(self.canvas["height"])
         for b in self._birds[:]:
             b["x"] += b["dx"]; b["y"] += b["dy"]

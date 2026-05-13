@@ -82,11 +82,16 @@ class MainWindow:
         self._pause_job = None     # 暂停 after 定时器
         self._choice_labels = []   # 选项 Label 引用（multi_click 用）
         self._sound_events = []    # 当前块的音效事件列表
+        self._sound_mgr = None     # 由 Game 注入
 
         # 面板数据缓存（面板关闭期间保持数据不丢失）
         self._cached_notes = ""
         self._cached_status = {}
         self._cached_items = []
+
+    def set_sound_manager(self, sound_mgr):
+        """由 Game.__init__ 注入 SoundManager 实例（M5 音效集成）"""
+        self._sound_mgr = sound_mgr
 
     # ========== 布局 ==========
 
@@ -374,11 +379,10 @@ class MainWindow:
             return "[SHAKE_{}]".format(len(self._shake_blocks) - 1)
         full_text = re.sub(r'\[shake\](.*?)\[/shake\]', _extract_shake, full_text, flags=re.DOTALL)
 
-        # 预处理 [sound] 标记：提取音效事件并移除标记（M5 接入）
-        self._sound_events = []
+        # 预处理 [sound] 标记：提取音效事件，替换为占位（M5 接入，块级关联）
+        self._sound_events = {}  # chunk_idx -> [sound_names]
         def _extract_sound(m):
-            self._sound_events.append(m.group(1))
-            return ""  # 不显示标记文字
+            return "[SOUND_{}]".format(m.group(1))  # 保留占位，后续按块分发
         full_text = re.sub(r'\[sound\s+(\w+)\]', _extract_sound, full_text)
         full_text = re.sub(r'\[/sound\]', '', full_text)
 
@@ -394,9 +398,18 @@ class MainWindow:
         if not chunks:
             chunks = [full_text.strip()]
 
-        # 扫描块中的 [PAUSE_N] 占位，重组为 processed 块 + 暂停映射
+        # 扫描块中的 [PAUSE_N] 占位 + [SOUND_name] 占位
         processed = []
         for c in chunks:
+            # 提取 [SOUND_name]：建立块→音效映射，并移除占位（M5）
+            sounds_in_chunk = re.findall(r'\[SOUND_(\w+)\]', c)
+            if sounds_in_chunk:
+                idx = len(processed)  # 当前块在 processed 中的索引
+                self._sound_events[idx] = sounds_in_chunk
+            c = re.sub(r'\[SOUND_\w+\]', '', c).strip()
+            if not c:
+                continue
+
             pm = re.match(r'^\[PAUSE_([\d.]+)\](.*)', c, re.DOTALL)
             if pm:
                 seconds = float(pm.group(1))
@@ -431,6 +444,12 @@ class MainWindow:
         if self._chunk_idx > 0:
             self._append("\n\n")
 
+        # 触发当前块的音效事件（M5 待配表工具启用）
+        # sounds = self._sound_events.get(self._chunk_idx, [])
+        # for snd in sounds:
+        #     if self._sound_mgr:
+        #         self._sound_mgr.play(snd)
+
         # 检查是否有 shake 占位
         chunk = self._chunks[self._chunk_idx]
         import re
@@ -442,6 +461,9 @@ class MainWindow:
                 shake_text = self._shake_blocks[shake_idx]
                 self._append_tagged(shake_text, "shake")
                 self._start_shake_animation()
+                # M5 待配表工具启用
+                # if self._sound_mgr:
+                #     self._sound_mgr.play("heartbeat")  # M5: 红色抖动同步心跳
             # 如果有剩余文本，继续打印；否则当作消耗完毕进入下一块
             if rest:
                 self._chunks[self._chunk_idx] = rest
@@ -710,8 +732,11 @@ class MainWindow:
             self._show_panel()
 
     def _show_panel(self):
-        """右侧滑入面板（暂停逐字打印 + 文本推进）"""
+        """右侧滑入面板（暂停逐字打印 + 文本推进 + M5 音效淡出）"""
         self._panel_open = True
+        # M5 面板打开静默，待配表工具启用
+        # if self._sound_mgr:
+        #     self._sound_mgr.stop_all()
         # 暂停逐字打印定时器
         if self._typewriter_job:
             self.root.after_cancel(self._typewriter_job)
@@ -744,7 +769,7 @@ class MainWindow:
                                 anchor="ne")
 
     def _hide_panel(self):
-        """关闭面板"""
+        """关闭面板（M5: 恢复环境音效）"""
         self._panel_open = False
         if self._dim_layer:
             self._dim_layer.destroy()
@@ -752,6 +777,8 @@ class MainWindow:
         if self._panel_frame:
             self._panel_frame.destroy()
             self._panel_frame = None
+        if self.on_toggle_panel:
+            self.on_toggle_panel(False)  # M5: 通知 Game 面板已关闭，恢复音效
 
     def _build_panel_content(self):
         """构建面板内容：今日笔记 + 角色状态 + 物品列表"""
@@ -872,6 +899,9 @@ class MainWindow:
     def _hide_gm_panel(self):
         """关闭 GM 面板"""
         self._gm_open = False
+        # 清理全局鼠标滚轮绑定（防止面板关闭后残留绑定访问已销毁 canvas）
+        if self.root:
+            self.root.unbind_all("<MouseWheel>")
         if self._gm_dim_layer:
             self._gm_dim_layer.destroy()
             self._gm_dim_layer = None
@@ -883,9 +913,15 @@ class MainWindow:
         """构建 GM 面板内容：加载章节 + 节点列表 + 变量调节 + 预设"""
         pad = 12
         title = tk.Label(self._gm_frame, text="GM 调试",
-                         font=("Microsoft YaHei", 12, "bold"),
-                         fg="#cc6600", bg=self.COLORS["panel_bg"])
+                          font=("Microsoft YaHei", 12, "bold"),
+                          fg="#cc6600", bg=self.COLORS["panel_bg"])
         title.pack(anchor=tk.W, padx=pad, pady=(12, 4))
+
+        # —— 音效状态行（M5 GM） ——
+        self._gm_sound_status = tk.Label(self._gm_frame, text="",
+                                          font=("Microsoft YaHei", 9, "bold"),
+                                          fg="#00cc00", bg=self.COLORS["panel_bg"])
+        self._gm_sound_status.pack(anchor=tk.W, padx=pad, pady=(0, 4))
 
         # —— 加载章节 ——
         tk.Label(self._gm_frame, text="加载章节",
@@ -912,7 +948,8 @@ class MainWindow:
         self._gm_node_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self._gm_node_canvas.bind("<Enter>", lambda e: self._gm_node_canvas.bind_all("<MouseWheel>",
-            lambda ev: self._gm_node_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")))
+            lambda ev: (self._gm_node_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")
+                        if self._gm_node_canvas and self._gm_node_canvas.winfo_exists() else None)))
         self._gm_node_canvas.bind("<Leave>", lambda e: self._gm_node_canvas.unbind_all("<MouseWheel>"))
 
         # —— 变量调节 ——
@@ -930,14 +967,31 @@ class MainWindow:
         self._gm_preset_frame.pack(fill=tk.X, padx=pad)
 
     def refresh_gm_panel(self, nodes_ordered: list, current_node: str, variables: dict,
-                          presets: list, chapters_loaded: list, all_chapters: list):
+                          presets: list, chapters_loaded: list, all_chapters: list,
+                          node_sounds: dict = None, active_sound: str = None):
         """刷新 GM 面板数据。
         nodes_ordered: [(chapter, node_id), ...] 按 JSON 原始顺序
         chapters_loaded: 已加载的章节号列表
         all_chapters: 所有可加载的章节号列表
+        node_sounds: {node_id: [sound_name, ...]} M5 GM 音效标注
+        active_sound: 当前正在播放的音效名
         """
         if not self._gm_frame:
             return
+        node_sounds = node_sounds or {}
+
+        # —— 音效状态更新（M5 GM） ——
+        if hasattr(self, '_gm_sound_status') and self._gm_sound_status:
+            if active_sound:
+                label_map = {"hum_low": "⬤ 播放中: hum_low 低频底噪",
+                             "water_drone": "⬤ 播放中: water_drone 水下白噪",
+                             "heartbeat": "⬤ 播放中: heartbeat 心跳",
+                             "metal_creak": "⬤ 播放中: metal_creak 金属嘎吱",
+                             "silence_fade": "⬤ 淡出中..."}
+                text = label_map.get(active_sound, "⬤ 播放中: " + active_sound)
+                self._gm_sound_status.config(text=text, fg="#00cc00")
+            else:
+                self._gm_sound_status.config(text="⬤ 无音效播放", fg="#555555")
 
         # —— 加载章节按钮 ——
         for c in self._gm_chapter_btn_frame.winfo_children():
@@ -976,14 +1030,34 @@ class MainWindow:
                              fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, pady=(6, 2))
                     last_ch = ch
                 fg = "#cc6600" if nid == current_node else self.COLORS["text"]
-                lbl = tk.Label(self._gm_node_list, text="  " + nid,
-                               font=("Microsoft YaHei", 9),
-                               fg=fg, bg=self.COLORS["panel_bg"],
-                               cursor="hand2", anchor=tk.W)
+                sd_list = node_sounds.get(nid, [])
+                sd_text = ""
+                if sd_list:
+                    abbr = {"hum_low": "L", "heartbeat": "H",
+                            "water_drone": "W", "metal_creak": "M",
+                            "metal_creak*": "M*"}
+                    parts = []
+                    for s in sd_list:
+                        a = abbr.get(s, "?")
+                        parts.append(a)
+                    sd_text = "  (" + ",".join(parts) + ")"
+                lbl = tk.Label(self._gm_node_list, text="  " + nid + sd_text,
+                                font=("Microsoft YaHei", 9),
+                                fg=fg, bg=self.COLORS["panel_bg"],
+                                cursor="hand2", anchor=tk.W)
                 lbl.pack(anchor=tk.W, pady=1)
                 lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg=self.COLORS["accent"]))
                 lbl.bind("<Leave>", lambda e, l=lbl, f=fg: l.config(fg=f))
                 lbl.bind("<Button-1>", lambda e, n=nid: (self.on_gm_jump(n), self._hide_gm_panel()))
+
+        # —— 音效图例（M5 GM） ——
+        tk.Label(self._gm_node_list, text="  ──────────────",
+                  font=("Microsoft YaHei", 8),
+                  fg="#444444", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, pady=(4, 0))
+        legend = "  L=hum_low H=heartbeat W=water_drone M=metal_creak *=失败触发"
+        tk.Label(self._gm_node_list, text=legend,
+                  font=("Microsoft YaHei", 8, "italic"),
+                  fg="#444444", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, pady=(0, 4))
 
         # —— 变量调节 ——
         for c in self._gm_var_frame.winfo_children():

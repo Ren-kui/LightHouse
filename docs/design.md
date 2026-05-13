@@ -84,6 +84,8 @@
 
 阅读文本 -> 2-4选项 -> 玩家选择 -> 变量更新 -> 跳转节点 -> 循环
 
+**结构特点**：主线是一条固定的线性叙事。选项不产生剧情分叉——它们改变的是变量值。所有路径最终汇聚回同一个主线节点。**选择后的不同体验由 `text_bridges` 承担**：类型一桥承载分叉叙事（冲突内容移入桥），类型二桥只写体验过渡。详见 `docs/bridges.md`。
+
 ---
 
 ## 2.2 选择类型
@@ -331,7 +333,7 @@ main.py               Game类入口 + FSM
 
 ## 4.2 JSON格式
 
-node_id/chapter/day/mood(可选:dread/tension/loss/quiet,缺省=关闭)/text(按\n\n分块)/choices(effects+conditions+multi_click)/auto_next/is_chapter_end/is_ending_chain(结局链标记,单选自动推进+只读模式)/text_bridges(按前置节点匹配承接桥段)
+node_id/chapter/day/mood(可选:dread/tension/loss/quiet,缺省=关闭)/text(按\n\n分块)/choices(effects+conditions+multi_click)/auto_next/is_chapter_end/is_ending_chain(结局链标记,单选自动推进+只读模式)/text_bridges(按前置节点匹配承接桥段——详见 `docs/bridges.md` 写作原则与配置表)
 
 ---
 

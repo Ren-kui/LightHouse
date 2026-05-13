@@ -66,6 +66,10 @@ class StoryEngine:
         n = self.nodes[node_id]
         self.chapter = n.get("chapter", self.chapter)
         self.day = n.get("day", self.day)
+        # 节点级 set_flags（到达节点时自动设置）
+        node_flags = n.get("set_flags")
+        if node_flags:
+            self.flags.update(node_flags)
         return True
 
     def goto_node(self, node_id: str):
@@ -75,6 +79,9 @@ class StoryEngine:
             n = self.nodes[node_id]
             self.chapter = n.get("chapter", self.chapter)
             self.day = n.get("day", self.day)
+            node_flags = n.get("set_flags")
+            if node_flags:
+                self.flags.update(node_flags)
         return self.get_current_node()
 
     def get_current_node(self):
@@ -119,9 +126,7 @@ class StoryEngine:
         # 优先级 4: A 疯狂
         if c >= 7 and s <= 3 and (t >= 5 or l >= 3):
             return "A"
-        # 优先级 5: E 提前逃离
-        if sw >= 8 and s <= 4 and t <= 4:
-            return "E"
+        # 优先级 5: E 提前逃离（仅由 ch05_early_escape 路径触发，不在此判定）
         # 优先级 6: B 一起逃离
         if c >= 6 and s >= 6 and t >= 7 and l >= 4:
             return "B"
@@ -164,10 +169,13 @@ class StoryEngine:
                 "failure_effects": choice.get("failure_effects"),
             }
 
-        # 普通选择：执行 effects + 跳转节点
+        # 普通选择：执行 effects + set_flags + 跳转节点
         effects = choice.get("effects")
         if effects:
             self.state.apply_effects(effects)
+        set_flags = choice.get("set_flags")
+        if set_flags:
+            self.flags.update(set_flags)
         nxt = choice.get("next_node")
         if nxt:
             self._jump_to_node(nxt)

@@ -58,7 +58,8 @@ class Game:
         self.state_mgr = StateManager()
         self.save_mgr = SaveManager()
         self.story = StoryEngine(self.state_mgr)
-        self.sound_mgr = SoundManager()  # FD-12: 音效模块挂载（M4 空壳）
+        self.sound_mgr = SoundManager()  # FD-12: 音效模块挂载（M4 空壳 → M5 实装）
+        self.window.set_sound_manager(self.sound_mgr)
 
         # 绑定 UI 回调
         self.window.on_menu_new_game = self.cmd_new_game
@@ -67,6 +68,7 @@ class Game:
         self.window.on_text_complete = self._on_text_done
         self.window.on_save_clicked = self.cmd_save
         self.window.on_load_clicked = self.cmd_load
+        self.window.on_toggle_panel = self._on_panel_toggle  # M5: 面板音效联动
 
         # GM 调试栏（--gm 启动参数启用）
         if "--gm" in sys.argv:
@@ -121,6 +123,7 @@ class Game:
         try:
             self.story.load_chapter(1)
             self.story.goto_node("ch01_start")
+            # self.sound_mgr.play("heartbeat")  # M5 待配表工具完成后启用
         except FileNotFoundError:
             self._show_error("剧情文件未找到\n\n请确保 data/chapter_01.json 存在。")
             return
@@ -226,8 +229,30 @@ class Game:
 
         self.window.show_chunked_text(self.story.get_current_text(), mood=node.get("mood"))
         self.window.update_day(node.get("day", 1), node.get("chapter", 1))
+        self._apply_environment_sound(node)  # M5: 环境音效自动触发
         self._refresh_panel()
         self._refresh_gm_panel()
+
+    def _apply_environment_sound(self, node: dict):
+        """M5: 根据节点 mood/day 自动触发环境音效。已禁用，待配表工具。"""
+        # day = node.get("day", 1)
+        # mood = node.get("mood", "quiet")
+        # self.sound_mgr.stop_all()
+        # if mood in ("dread", "tension", "loss"):
+        #     self.sound_mgr.play("hum_low")
+        # if day >= 5 and mood == "dread":
+        #     self.sound_mgr.play("water_drone")
+        pass
+
+    def _on_panel_toggle(self, is_open: bool):
+        """M5: 面板开/关时的音效联动。已禁用，待配表工具。"""
+        # if is_open:
+        #     self.sound_mgr.play("silence_fade")
+        # else:
+        #     node = self.story.get_current_node()
+        #     if node:
+        #         self._apply_environment_sound(node)
+        pass
 
     def _refresh_panel(self):
         """刷新状态面板：变量描述 + 今日笔记 + 物品列表"""
@@ -257,7 +282,7 @@ class Game:
         self.window.update_panel_notes(notes)
         # 物品列表
         items = []
-        if self.story.flags.get("found_diary"):
+        if self.story.flags.get("found_diary_page"):
             items.append({"name": "日记残页", "desc": "1930年代守塔人的破旧日记，部分页面被撕去。"})
         self.window.update_panel_items(items)
 
@@ -340,17 +365,54 @@ class Game:
             return
         # 按 JSON 原始顺序构建节点列表：[(chapter, node_id), ...]
         ordered = []
+        node_sounds = {}
         for nid in self.story._node_order:
             node = self.story.nodes.get(nid)
             if node:
                 ordered.append((node.get("chapter", 0), nid))
+                node_sounds[nid] = self._analyze_node_sounds(node)
         variables = self.state_mgr.get_all()
         # 列出所有已加载的章节号
         chapters_loaded = sorted(set(c for c, _ in ordered))
         all_chapters = [1, 2, 3]  # M4 可用章节
+        # 当前播放的音效状态
+        active_sound = self.sound_mgr._active
         self.window.refresh_gm_panel(ordered, self.story.current_node or "",
-                                     variables, self.GM_PRESETS,
-                                     chapters_loaded, all_chapters)
+                                      variables, self.GM_PRESETS,
+                                      chapters_loaded, all_chapters,
+                                      node_sounds, active_sound)
+
+    def _analyze_node_sounds(self, node: dict) -> list:
+        """M5 GM: 分析节点的音效触发列表，返回 [音效名, ...]。
+        基于 _apply_environment_sound 的触发逻辑 + [shake]/[sound] 标记。
+        """
+        sounds = []
+        day = node.get("day", 1)
+        mood = node.get("mood", "quiet")
+        text = node.get("text", "")
+
+        # 环境音效
+        if mood in ("dread", "tension", "loss"):
+            sounds.append("hum_low")
+        if day >= 5 and mood == "dread":
+            sounds.append("water_drone")
+
+        # 事件音效
+        if "[shake]" in text:
+            sounds.append("heartbeat")
+        # [sound XXX] 标记（ND 待预标）
+        import re
+        event_sounds = re.findall(r'\[sound\s+(\w+)\]', text)
+        sounds.extend(event_sounds)
+
+        # 小游戏死亡音效（MG4/MG5 失败 → metal_creak）
+        choices = node.get("choices", [])
+        for c in choices:
+            mg = c.get("minigame", "")
+            if mg in ("MG4A", "MG4B", "MG5"):
+                sounds.append("metal_creak*")
+
+        return sounds
 
     def cmd_gm_load_chapter(self, chapter_num: int):
         """GM 加载指定章节（已加载则跳过重复加载，仅跳转）"""
@@ -425,7 +487,12 @@ class Game:
 
         if self._mg_info:
             self.story.apply_minigame_result(success, self._mg_info)
+            mg_name = self._mg_info.get("minigame", "")
             self._mg_info = None
+
+        # M5: 小游戏失败音效，已禁用，待配表工具
+        # if not success and mg_name in ("MG4A", "MG4B", "MG5"):
+        #     self.sound_mgr.play("metal_creak")
 
         self._auto_save()
         self._display_node()

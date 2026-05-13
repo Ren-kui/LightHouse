@@ -139,7 +139,7 @@ def _validate_chapter(fname, data):
             errors.append("{} / {} auto_next '{}' 指向不存在节点".format(fname, nid, auto))
 
     # 4. text_bridges key 合法性检查
-    # 收集所有合法的源→目标跳转关系（从 choices.next_node 和 minigame success_node/failure_node）
+    # 收集所有合法的源→目标跳转关系（choices.next_node、minigame、auto_next）
     valid_sources = {}  # target_node → set of source nodes that can reach it
     for n in nodes:
         choices = n.get("choices", [])
@@ -155,6 +155,10 @@ def _validate_chapter(fname, data):
                 fn = c.get("failure_node")
                 if fn:
                     valid_sources.setdefault(fn, set()).add(n["node_id"])
+        # auto_next 也是合法前置节点（中间桥节点通过 auto_next 到达目标）
+        auto = n.get("auto_next")
+        if auto:
+            valid_sources.setdefault(auto, set()).add(n["node_id"])
 
     for n in nodes:
         nid = n.get("node_id")

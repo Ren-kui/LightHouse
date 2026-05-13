@@ -1,7 +1,7 @@
 ﻿# 代码修改日志
 
 > 维护者：FD | 记录每次代码文件的增删改
-> 最后更新：2026-05-10
+> 最后更新：2026-05-12
 
 | 日期 | 文件 | 改动类型 | 描述 |
 |------|------|----------|------|
@@ -161,3 +161,40 @@
 | 2026-05-11 | — | 配置 | GitHub 远程仓库配置：`https://github.com/Ren-kui/LightHouse`，`git push origin master:main` |
 | 2026-05-11 | docs/progress.md | 更新 | 根目录文件清单新增 GitHub 远程仓库地址 |
 | 2026-05-11 | docs/agents.md | 更新 | 状态行更新：M5 实际进度（第 4-6 章完成/87 测试/结局引擎/MG4A/MG4B/MG5/darkness_overlay） |
+| 2026-05-12 | docs/progress.md | 更新 | PM 文档同步：M2/M3/M4→100%✅，M5→75%，M6→20%；M5 预备任务+正式任务全部补状态列；根目录文件清单追加启动测试.bat |
+| 2026-05-12 | docs/decisions.md | 新增 | D034：GD 5 结局精确定量阈值表正式交付（design.md §2.5 与 story_engine.py 全 8 结局逐项对齐） |
+| 2026-05-12 | docs/decisions.md | 新增 | D035：角色交付不可绕过+声明确认制（W005 + agents.md 会话规则 #2/#3） |
+| 2026-05-12 | docs/work_standards.md | 新增 | W005：角色交付不可绕过规则——5 角色强制声明格式表、PM 放行前验声明、角色隔离挡板 |
+| 2026-05-12 | docs/agents.md | 更新 | 会话规则表新增 #2 声明确认制、#3 角色隔离 |
+| 2026-05-12 | src/sound_manager.py | 重写 | M5 PCM 合成实装：_generate_tone/_gen_sine/_gen_square/_gen_pulse/_gen_noise/_gen_fade 六波形生成器；_generate_all 预生成 5 音效 wav 到 data/sounds/；play 使用 winsound SND_ASYNC 异步线程播放；stop/stop_all/mute 完整实现 |
+| 2026-05-12 | tests/test_sound_manager.py | 更新 | SD-04 时序约束从 M4 空壳（100ms/50ms/10ms）更新为 M5 实装（2000ms/500ms/50ms），匹配 PCM 合成 I/O 开销 |
+| 2026-05-12 | data/chapter_01.json | 优化 | ND P6 隐喻清理：5 节点修复（比…更…2→1，像-类 4→1，不是…是… 3→1）；ch01_evening text_bridge 修复 |
+| 2026-05-12 | data/chapter_02.json | 优化 | ND P6 隐喻清理：10 节点修复（ch02_silhouette 像-类 5→1、ch02_night 像+不是 4+2→各1、其余各节点单类超标修复） |
+| 2026-05-12 | data/chapter_03.json | 优化 | ND P6 隐喻清理：6 节点修复（ch03_d5_search 不是…是… 4→1、ch03_basement_enter 像+不是 2+3→各1、其余节点单类超标修复） |
+| 2026-05-12 | docs/bridges.md | 新建 | ND 桥段文档：定义（4 连续性）→ 写作原则（8 条）→ 汇聚节点配置表（6 章全部节点）→ `*` fallback 原则。ND 维护，QA 对表验收。 |
+| 2026-05-12 | docs/nd_selfcheck.md | 更新 | 第 7 条同源异构专项扫描扩充为 bridges.md 对表流程；第 7/9 条自检项增加 bridges.md 引用；交付声明追加桥配置行 |
+| 2026-05-12 | docs/agents.md | 更新 | ND 对标列追加 bridges.md §2 写作原则 |
+| 2026-05-12 | docs/design.md | 更新 | §4.2 JSON 格式 text_bridges 说明追加 bridges.md 引用 |
+| 2026-05-12 | docs/work_standards.md | 更新 | ND 自检声明格式追加汇聚节点数 + text_bridges 条数 + bridges.md 对表确认 |
+| 2026-05-12 | src/main_window.py | 新增 | M5 音效集成：set_sound_manager 接收注入；[shake]→heartbeat 同步播放；[sound] 块级关联（SOUND_N 占位→chunk_idx→play）；_show_panel 面板打开→stop_all 静默；_hide_panel→on_toggle_panel 回调 |
+| 2026-05-12 | data/chapter_02~03~06.json | 新增 | 22 个中间桥节点：拆分同源汇聚选择路径，消除"也许A也许B"条件桥语言 |
+| 2026-05-12 | data/chapter_02~06.json | 重写 | 110+ text_bridges 全量重写：ch02 5组/ch03 5组/ch04 3组/ch05 2组/ch06 1组 |
+| 2026-05-12 | tests/validate_data.py | 更新 | text_bridges 合法前置节点检查追加 `auto_next` 支持 |
+| 2026-05-12 | src/minigame_base.py | Bug修复 | B019: MG2 光点叠层——`_clear_dot_and_next` 中取消旧 `_spawn_timer` 防重复召唤 |
+| 2026-05-12 | docs/work_standards.md | 新增 | W006: 异步回调防卫——cancel 旧→设状态→schedule 新 |
+| 2026-05-12 | docs/agents.md | 更新 | FD P5 扩充异步防卫；状态行更新 M5 85% |
+| 2026-05-12 | docs/fd_selfcheck.md | 新增 | X7 交互矩阵：计时器到期瞬间点击验证 |
+| 2026-05-12 | docs/decisions.md | 新增 | D036: B019 复盘，异步回调防卫制 |
+| 2026-05-12 | docs/bug_list.md | 新增 | B019: MG2 光点叠层 P1 已修复 |
+| 2026-05-12 | docs/bridges.md | 更新 | ch02~06 汇聚节点配置表全部更新为 ✅ |
+| 2026-05-12 | docs/progress.md | 更新 | M5 75%→85%；任务状态同步桥段+音效+B019 |
+| 2026-05-12 | data/chapter_02.json | 修复 | ND自检：ch02_night_walk P6/ ch02_d3_start桥P6/ ch02_mg2_failure桥POV/ ch02_even_ask桥#9预演/ ch02_sil_ask P6+POV/ ch02_mg2_success 具体替换抽象+体验感 |
+| 2026-05-12 | data/chapter_03.json | 修复 | ND自检：ch03_d4_note P6/ ch03_belong_hold P6/ ch03_belong_silent P6 |
+| 2026-05-12 | docs/agents.md | 更新 | ND P1 扩充"不绕"示例；ND P3 扩充"体验感"——不是加个"好像"就够，须写"看→判断"的完整心理过程 |
+| 2026-05-12 | docs/bridges.md | 更新 | §2 新增写作原则 #9：桥段不预演正文 |
+| 2026-05-12 | docs/bug_list.md | 新增 | B020: GM面板关闭后滚轮 TclError P1 已修复 |
+| 2026-05-12 | docs/bridges.md | 重写 | §1 桥的两类作用（类型一分叉叙事/类型二体验过渡）；新增原则 #10（时间线停在正文前）+黄金规则 |
+| 2026-05-12 | docs/agents.md | 更新 | ND P4 追加桥分类引用 |
+| 2026-05-12 | docs/design.md | 更新 | §2.1 标注主线固定+变量分叉结构 |
+| 2026-05-12 | docs/decisions.md | 新增 | D037: 桥设计澄清——两类作用+主线固定结构 |
+| 2026-05-12 | data/chapter_02.json | 修复 | ch02_explore_tell/stay 桥节点剧透+上帝视角修复；ch02_silhouette text_bridges 缩为简短承接 |

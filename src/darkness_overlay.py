@@ -54,7 +54,7 @@ class DarknessOverlay:
             self.parent, width=w, height=h,
             bg="#000000", highlightthickness=0, bd=0)
         self.canvas.place(x=0, y=0, relwidth=1, relheight=1)
-        self.canvas.lift()
+        self.canvas.tkraise()
 
         self._running = True
         self._draw_frame()
