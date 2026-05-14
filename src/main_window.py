@@ -629,10 +629,13 @@ class MainWindow:
         self._choice_rows = []
         self._choice_labels = []
 
-    def update_choice_label(self, index: int, new_text: str):
-        """更新指定选项的文字（multi_click 连点时用）"""
+    def update_choice_label(self, index: int, new_text: str, fg: str = None):
+        """更新指定选项的文字和颜色（multi_click 连点时用）"""
         if index < len(self._choice_labels):
-            self._choice_labels[index].config(text=new_text)
+            lbl = self._choice_labels[index]
+            lbl.config(text=new_text)
+            if fg:
+                lbl.config(fg=fg)
 
     def gray_choices(self):
         """将所有选项变灰并禁用交互（OPT-04）"""

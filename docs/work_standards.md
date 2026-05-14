@@ -34,7 +34,8 @@
 |---|------|
 | **规则** | 每个功能模块完成后，QA 必须先内部验证通过，再提交给老板评审 |
 | **QA 全程介入** | QA 在每个功能验收环节都必须介入验收 |
-| **Bug 清单** | QA 测出 Bug 后标记并记录至 `docs/bug_list.md`（由 QA 维护） |
+| **Bug 清单** | 老板发现 Bug → QA 记录（编号+复现步骤+优先级）→ FD 修复 → QA 出验证记录 → 老板物理验收关闭。FD 不得自行将 Bug 标记为已修复。维护者见 `docs/bug_list.md` |
+| **QA 两层分工** | **逻辑层**（AI）：跑全量自动化测试 + 模拟点击状态校验 + FD 自检声明二次确认 + Bug 复现记录。**物理层**（老板）：肉眼验证视觉效果/动画/音效/排版，确认修复后关闭。QA 不放行——QA 提供验证记录给老板做决策依据 |
 | **优化督促** | QA 负责督促 FD 完成 `docs/optimizations.md` 中全部"重要优化" |
 | **优化打勾** | 重要优化由 QA 完成验收后打勾；PM 仅提优化意见，表格记录维护移交 QA |
 | **QA 检查项** | 流程可达性、变量正确性、边界情况、死链检查、缺失提示（"未完待工"）、文本错字 |
@@ -68,8 +69,28 @@
 
 ---
 
-> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006（平等）
->
+> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006 = W007 = W008（平等）
+
+
+## W007 · 小游戏生命周期防卫（MG4A 崩溃复盘）
+
+| 项 | 内容 |
+|---|------|
+| **规则** | 小游戏完成回调（`_complete → callback → destroy`）不得在渲染循环的调用栈内同步执行。`_complete` 必须将回调延迟到循环安全返回之后（`after`/`after_idle`）。`destroy` 必须无条件执行清理，不得依赖 `_running` 等中间状态决定是否调用 `_on_stop`。 |
+| **三条标准** | ① `_complete` 内的 `callback` 通过 `after(10, ...)` 延迟，确保 `_loop`/`_draw_frame` 安全返回后再触发销毁 ② `destroy` 无条件调用 `_on_stop`（取消 timers、unbind events）后再 `canvas.destroy()` ③ `_on_stop` 始终执行完整的 timer/event 清理，不得有条件 return |
+| **自检** | FD 每次修改小游戏代码后，自检清单追加一条：MG4A 海鸟躲避连中 3 次 → 确认无 `NoneType` 崩溃，canvas 安全销毁 |
+| **依据** | MG4A 崩溃链：`_check_hits → _complete → callback → destroy(canvas=None)` 在 `_loop` 调用栈内同步执行，后续 `self.canvas.after(...)` 访问 None |
+
+
+## W008 · Tkinter 尺寸防卫（MG4B 全黑复盘）
+
+| 项 | 内容 |
+|---|------|
+| **规则** | `winfo_width()` / `winfo_height()` 在 widget 首次 `place()` 后、Tkinter 主循环渲染前返回 `1`（非 falsy），不可用 `or DEFAULT` 进行尺寸兜底。所有 Canvas/widget 的尺寸获取必须使用 `if w < 50: w = DEFAULT` 阈值判断。 |
+| **自检** | FD 每次新建 Canvas 或覆盖层 widget 时：获取尺寸用的是 `< 50` 阈值而非 `or default` |
+| **依据** | MG4B 全黑 — DarknessOverlay Canvas 在 `minigame_area` 首次 `place()` 后立即 `start()`，父容器尚未渲染，`winfo_width()=1` → `or 860` 未生效，Canvas 1×1 px |
+
+
 > **关联文档**：`docs/decisions.md` / `docs/design.md` / `docs/progress.md` / `docs/test_report.md` / `docs/agents.md`（含会话规则）/ `docs/fd_selfcheck.md`（含交互矩阵）/ `docs/nd_selfcheck.md`
 
 ---

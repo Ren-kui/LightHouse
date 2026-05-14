@@ -291,7 +291,7 @@
           "multi_click": null
         },
         {
-          "label": "翻开父亲的日志——「一层你是再也睡不着的，趁他还在这里，读一遍」",
+          "label": "翻开父亲的日志——反正睡不着，趁他还在，读一遍",
           "next_node": "ch04_dad_logbook",
           "effects": { "survival_will": 1, "sanity": 0, "trust": 0, "curiosity": 1, "loyalty": 0 },
           "set_flags": { "found_dad_logbook": true },

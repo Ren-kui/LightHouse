@@ -198,3 +198,22 @@
 | 2026-05-12 | docs/design.md | 更新 | §2.1 标注主线固定+变量分叉结构 |
 | 2026-05-12 | docs/decisions.md | 新增 | D037: 桥设计澄清——两类作用+主线固定结构 |
 | 2026-05-12 | data/chapter_02.json | 修复 | ch02_explore_tell/stay 桥节点剧透+上帝视角修复；ch02_silhouette text_bridges 缩为简短承接 |
+| 2026-05-12 | src/minigame_base.py | Bug修复 | MG4A 崩溃：`_complete` 回调 `after(10)` 延迟防调用栈内销毁；`destroy` 始终执行 `_on_stop`；`_on_stop` 去除条件 return |
+| 2026-05-12 | src/darkness_overlay.py | 重写 | MG4B/MG5 黑暗收缩：新增指引文字+倒计时+进度条+点击交互（30 次=成功）；`set_complete_callback` 支持 `success: bool` 参数 |
+| 2026-05-12 | src/darkness_overlay.py | Bug修复 | MG4B 全黑：`winfo_width()=1` 非 falsy→`or 860`不生效，改为 `<50` 阈值判断 |
+| 2026-05-12 | src/main.py | 更新 | GM 加载章节从 3 章扩展为 6 章；`_analyze_node_sounds` day 用 `or 1` 防 `null`；MG4B/MG5 回调传实际成功/失败 |
+| 2026-05-12 | data/chapter_04.json | 修复 | ch04_darkness_end 选择标签乱码修复（"一层你是再也睡不着的"→"反正睡不着"） |
+| 2026-05-12 | data/chapter_05.json | 修复 | 日记原文"不能抓——只能接"→"不抢——只收"；张海生对白"那不是文学"→"我不是在形容。它是真的。"；"它是接收"→"它不收——只等" |
+| 2026-05-12 | docs/agents.md | 更新 | ND P1 追加"对话口语化"规则：NPC 对白须符合身份背景语感 |
+| 2026-05-12 | docs/agents.md | 更新 | FD P5 扩充"生命周期"；状态行 M5 详情重写 |
+| 2026-05-12 | docs/work_standards.md | 新增 | W007: 小游戏生命周期防卫（回调延迟+destroy无条件清理+_on_stop禁条件return） |
+| 2026-05-12 | docs/work_standards.md | 新增 | W008: Tkinter 尺寸防卫（winfo_width()未渲染=1，须<50阈值判断） |
+| 2026-05-12 | docs/decisions.md | 新增 | D038: MG4A 崩溃复盘——小游戏生命周期防卫 |
+| 2026-05-12 | docs/fd_selfcheck.md | 更新 | X8: MG4A 连中 3 次→canvas 安全销毁；交互矩阵补 W008 自检 |
+| 2026-05-12 | docs/work_standards.md | 更新 | W003 Bug 清单条款重写：QA 两层分工（逻辑层 AI / 物理层老板）+ 老板关闭 + FD 不得自行标记已修复 |
+| 2026-05-12 | docs/agents.md | 重写 | QA 行：从"测试验收·独立放行官"→"测试审计员·两层分工"；去放行权、加验证记录交付 |
+| 2026-05-12 | docs/bug_list.md | 更新 | 维护人改为 QA（实际执行：老板/FD）；新增 FD 不得自行标记已修复条款 |
+| 2026-05-12 | tests/test_qa_logic.py | 新建 | QA 逻辑层验证：10 项——flag 写入/结局不可达/桥段匹配/多击可用/MG2 竞态修复/6 章加载/8 结局节点/return_drawer 存在 |
+| 2026-05-12 | docs/decisions.md | 新增 | D039: QA 角色重定义——从独立放行官→测试审计员，两层分工（逻辑 AI + 物理老板） |
+| 2026-05-12 | docs/progress.md | 更新 | M5 90%→100% ✅；音效 6 项蒙灰不计入；darkness V2 + 多击渐变完成 |
+| 2026-05-12 | docs/agents.md | 更新 | 状态行重写；M5 ✅ 100% M6 🔄 20% |

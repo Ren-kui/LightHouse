@@ -175,7 +175,10 @@ class Game:
                     current = self._multi_click_state[index]
                     if current < required:
                         text_idx = min(current, len(texts) - 1)
-                        self.window.update_choice_label(index, texts[text_idx])
+                        # 颜色渐变：灰→暗橙→红（#666→#995500→#aa3300→#cc0000）
+                        colors = ["#666666", "#995500", "#aa3300", "#bb1100", "#cc0000"]
+                        fg = colors[min(current, len(colors) - 1)]
+                        self.window.update_choice_label(index, texts[text_idx], fg)
                         return
                     else:
                         del self._multi_click_state[index]
@@ -374,7 +377,7 @@ class Game:
         variables = self.state_mgr.get_all()
         # 列出所有已加载的章节号
         chapters_loaded = sorted(set(c for c, _ in ordered))
-        all_chapters = [1, 2, 3]  # M4 可用章节
+        all_chapters = [1, 2, 3, 4, 5, 6]  # M5 全章节可用
         # 当前播放的音效状态
         active_sound = self.sound_mgr._active
         self.window.refresh_gm_panel(ordered, self.story.current_node or "",
@@ -387,7 +390,7 @@ class Game:
         基于 _apply_environment_sound 的触发逻辑 + [shake]/[sound] 标记。
         """
         sounds = []
-        day = node.get("day", 1)
+        day = node.get("day") or 1
         mood = node.get("mood", "quiet")
         text = node.get("text", "")
 
@@ -452,20 +455,22 @@ class Game:
         self._goto("MINIGAME")
         self.window.clear_choices()
 
-        # MG4B 黑暗收缩：使用 DarknessOverlay
+        # MG4B 黑暗收缩：使用 DarknessOverlay（点击重启交互）
         if mg_name == "MG4B":
             self._mg_instance = DarknessOverlay(self.window.minigame_area)
-            self._mg_instance.set_complete_callback(lambda: self._on_minigame_complete(True))
+            self._mg_instance.set_complete_callback(
+                lambda s: self._on_minigame_complete(s))
             self.window.show_minigame()
             self._mg_instance.start(duration_seconds=50)
             return
 
-        # MG5 黑暗收缩·对抗：使用 DarknessOverlay（V2 不对称，此处暂用 V1）
+        # MG5 黑暗收缩·对抗：使用 DarknessOverlay V2 不对称收缩
         if mg_name == "MG5":
             self._mg_instance = DarknessOverlay(self.window.minigame_area)
-            self._mg_instance.set_complete_callback(lambda: self._on_minigame_complete(True))
+            self._mg_instance.set_complete_callback(
+                lambda s: self._on_minigame_complete(s))
             self.window.show_minigame()
-            self._mg_instance.start(duration_seconds=45)
+            self._mg_instance.start(duration_seconds=45, version=2)
             return
 
         mg_cls = self.MG_MAP.get(mg_name)

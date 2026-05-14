@@ -38,10 +38,10 @@ class MinigameBase:
 
     def destroy(self):
         """销毁小游戏实例，先解绑后清理组件"""
-        if self._running:
-            self._running = False
-            self._on_stop()
-        self.canvas.destroy()
+        self._running = False
+        self._on_stop()
+        if self.canvas and self.canvas.winfo_exists():
+            self.canvas.destroy()
         self.canvas = None
 
     # ---- 子类覆写 ----
@@ -53,11 +53,11 @@ class MinigameBase:
         pass
 
     def _complete(self, success: bool):
-        """小游戏结束，回调后安全停止"""
-        if self._complete_callback:
-            self._complete_callback(success)
+        """小游戏结束，延迟回调防止在 _loop 调用栈内销毁 canvas"""
         if self._running:
-            self.stop()
+            self._running = False
+        if self._complete_callback and self.canvas and self.canvas.winfo_exists():
+            self.canvas.after(10, self._complete_callback, success)
 
 
 # ============================================================
@@ -745,8 +745,9 @@ class MG4A_SeabirdDodge(MinigameBase):
                 if self._hits >= 3:
                     self._complete(False)
 
-    def _on_stop(self, running=True):
-        if running: return
-        if self._timer and self.canvas.winfo_exists():
-            self.canvas.after_cancel(self._timer); self._timer = None
-        self.canvas.unbind("<Motion>")
+    def _on_stop(self):
+        if self._timer and self.canvas and self.canvas.winfo_exists():
+            self.canvas.after_cancel(self._timer)
+            self._timer = None
+        if self.canvas and self.canvas.winfo_exists():
+            self.canvas.unbind("<Motion>")
