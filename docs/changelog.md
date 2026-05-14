@@ -199,7 +199,7 @@
 | 2026-05-12 | docs/decisions.md | 新增 | D037: 桥设计澄清——两类作用+主线固定结构 |
 | 2026-05-12 | data/chapter_02.json | 修复 | ch02_explore_tell/stay 桥节点剧透+上帝视角修复；ch02_silhouette text_bridges 缩为简短承接 |
 | 2026-05-12 | src/minigame_base.py | Bug修复 | MG4A 崩溃：`_complete` 回调 `after(10)` 延迟防调用栈内销毁；`destroy` 始终执行 `_on_stop`；`_on_stop` 去除条件 return |
-| 2026-05-12 | src/darkness_overlay.py | 重写 | MG4B/MG5 黑暗收缩：新增指引文字+倒计时+进度条+点击交互（30 次=成功）；`set_complete_callback` 支持 `success: bool` 参数 |
+| 2026-05-12 | src/darkness_overlay.py | Bug修复 | V1 启动崩溃：`w`/`h` 赋值缩进在 `if version>=2:` 块内，V1 启始时未绑定。移出为公共代码 |
 | 2026-05-12 | src/darkness_overlay.py | Bug修复 | MG4B 全黑：`winfo_width()=1` 非 falsy→`or 860`不生效，改为 `<50` 阈值判断 |
 | 2026-05-12 | src/main.py | 更新 | GM 加载章节从 3 章扩展为 6 章；`_analyze_node_sounds` day 用 `or 1` 防 `null`；MG4B/MG5 回调传实际成功/失败 |
 | 2026-05-12 | data/chapter_04.json | 修复 | ch04_darkness_end 选择标签乱码修复（"一层你是再也睡不着的"→"反正睡不着"） |

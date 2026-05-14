@@ -68,10 +68,10 @@ class DarknessOverlay:
             }
             self._v2_margins = {"top": 0, "left": 0, "bottom": 0, "right": 0}
 
-            w = self.parent.winfo_width()
-            h = self.parent.winfo_height()
-            if w < 50 or h < 50:
-                w, h = 860, 640
+        w = self.parent.winfo_width()
+        h = self.parent.winfo_height()
+        if w < 50 or h < 50:
+            w, h = 860, 640
 
         self._end_margin = max(w, h) // 2
 

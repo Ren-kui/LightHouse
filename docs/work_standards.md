@@ -69,7 +69,7 @@
 
 ---
 
-> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006 = W007 = W008（平等）
+> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006 = W007 = W008 = W009（平等）
 
 
 ## W007 · 小游戏生命周期防卫（MG4A 崩溃复盘）
@@ -89,6 +89,15 @@
 | **规则** | `winfo_width()` / `winfo_height()` 在 widget 首次 `place()` 后、Tkinter 主循环渲染前返回 `1`（非 falsy），不可用 `or DEFAULT` 进行尺寸兜底。所有 Canvas/widget 的尺寸获取必须使用 `if w < 50: w = DEFAULT` 阈值判断。 |
 | **自检** | FD 每次新建 Canvas 或覆盖层 widget 时：获取尺寸用的是 `< 50` 阈值而非 `or default` |
 | **依据** | MG4B 全黑 — DarknessOverlay Canvas 在 `minigame_area` 首次 `place()` 后立即 `start()`，父容器尚未渲染，`winfo_width()=1` → `or 860` 未生效，Canvas 1×1 px |
+
+
+## W009 · 分支对称性（结局循环复盘）
+
+| 项 | 内容 |
+|---|------|
+| **规则** | 同一状态判断逻辑存在于多个调用路径时，必须确认各路径实现一致。新增路径时须审计已有路径的同类逻辑，不得遗漏。 |
+| **自检** | FD 每次新增 `cmd_*` / `_on_*` 回调，检查是否有其他路径在同类状态下执行了额外逻辑 |
+| **依据** | ch06 结局循环 — `is_ending_node` 转发仅在 `_on_text_done` 实现，`cmd_choice` 遗漏。同类：B018 / MG4A `_on_stop` / `_complete` 同步回调——均为一逻辑两路径不对称 |
 
 
 > **关联文档**：`docs/decisions.md` / `docs/design.md` / `docs/progress.md` / `docs/test_report.md` / `docs/agents.md`（含会话规则）/ `docs/fd_selfcheck.md`（含交互矩阵）/ `docs/nd_selfcheck.md`

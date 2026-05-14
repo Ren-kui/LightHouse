@@ -200,7 +200,17 @@ class Game:
             self._start_minigame(result["minigame"])
             return
 
-        # 普通节点跳转
+        # 普通节点跳转：先检查是否结局节点（is_ending_node 选项 next_node=null 时须在此路由）
+        node = self.story.get_current_node()
+        if node and node.get("is_ending_node"):
+            ending = self.story.check_ending()
+            if ending:
+                target = ch06_ending_map.get(ending)
+                if target:
+                    self.story.goto_node(target)
+                    self._display_node()
+                    return
+
         self._auto_save()
         self._display_node()
 
