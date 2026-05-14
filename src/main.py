@@ -217,34 +217,44 @@ class Game:
     # ========== 内部方法 ==========
 
     def _display_node(self):
-        """渲染当前节点：逐字文本 + 刷新状态面板"""
-        self.window.clear_choices()
-        self._multi_click_state = {}
-        node = self.story.get_current_node()
-        if node is None:
-            if self.story.reached_end:
-                chapter_name = {1: "抵达", 2: "初现", 3: "深入",
-                                4: "抉择", 5: "对抗", 6: "结局"}.get(
-                                    self.story.chapter, "第{}章".format(self.story.chapter))
-                self.window.show_chunked_text(
-                    "（未完待工）\n\n"
-                    "你已完成第{}章 · {}。\n"
-                    "后续章节正在开发中，请关注更新。\n\n"
-                    "[pause 2.0]\n\n"
-                    "已为你自动存档。你可以从标题界面\"继续游戏\"回到此处。".format(
-                        self.story.chapter, chapter_name)
-                )
-            else:
-                self.window.show_chunked_text("【没有可显示的剧情】")
+        """渲染当前节点：黑屏过渡 → 逐字文本 + 刷新状态面板（OPT-07）"""
+        def _do_display():
             self.window.clear_choices()
-            self._refresh_panel()
-            return
+            self._multi_click_state = {}
+            node = self.story.get_current_node()
+            if node is None:
+                if self.story.reached_end:
+                    chapter_name = {1: "抵达", 2: "初现", 3: "深入",
+                                    4: "抉择", 5: "对抗", 6: "结局"}.get(
+                                        self.story.chapter, "第{}章".format(self.story.chapter))
+                    self.window.show_chunked_text(
+                        "塔灯还没转回来。\n\n"
+                        "你站在这里——第{}章 · {}的末尾——"
+                        "手里的日志只翻到这里。海风继续灌进窗缝，"
+                        "柴油发电机的震动从脚下的铁梯传上来。\n\n"
+                        "[pause 1.5]\n\n"
+                        "张海生在哪儿？他在下面干什么？"
+                        "那些声音今晚还会不会来？\n\n"
+                        "——这些问题的答案还在更深的地方。"
+                        "在灯塔还没告诉你的事里。\n\n"
+                        "[pause 2.0]\n\n"
+                        "你的进度已保存。下次从标题界面\"继续游戏\"，"
+                        "你会回到这里。\n\n"
+                        "塔还亮着。它在等。".format(
+                            self.story.chapter, chapter_name)
+                    )
+                else:
+                    self.window.show_chunked_text("【没有可显示的剧情】")
+                self.window.clear_choices()
+                self._refresh_panel()
+                return
 
-        self.window.show_chunked_text(self.story.get_current_text(), mood=node.get("mood"))
-        self.window.update_day(node.get("day", 1), node.get("chapter", 1))
-        self._apply_environment_sound(node)  # M5: 环境音效自动触发
-        self._refresh_panel()
-        self._refresh_gm_panel()
+            self.window.show_chunked_text(self.story.get_current_text(), mood=node.get("mood"))
+            self.window.update_day(node.get("day", 1), node.get("chapter", 1))
+            self._apply_environment_sound(node)
+            self._refresh_panel()
+            self._refresh_gm_panel()
+        self.window.flash_black_transition(_do_display)
 
     def _apply_environment_sound(self, node: dict):
         """M5: 根据节点 mood/day 自动触发环境音效。已禁用，待配表工具。"""

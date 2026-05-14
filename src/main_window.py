@@ -80,6 +80,7 @@ class MainWindow:
         self._pause_after = {}     # 块索引 -> 暂停秒数
         self._is_pausing = False   # 正在暂停等待
         self._pause_job = None     # 暂停 after 定时器
+        self._prompt_blink_job = None  # 提示符闪烁 after
         self._choice_labels = []   # 选项 Label 引用（multi_click 用）
         self._sound_events = []    # 当前块的音效事件列表
         self._sound_mgr = None     # 由 Game 注入
@@ -273,22 +274,34 @@ class MainWindow:
                            on_done=self._show_title_and_menu)
 
     def _show_title_and_menu(self):
-        """引言消失后，清除文本 → 显示标题 → 菜单（防重复调用）"""
+        """引言消失后 → 标题渐显动画 → 菜单（OPT-12 浮现动画）"""
         if getattr(self, '_title_menu_shown', False):
             return
         self._title_menu_shown = True
         self.text_area.config(state=tk.NORMAL)
         self.text_area.delete("1.0", tk.END)
         self.text_area.insert(tk.END, "\n\n\n\n")
-        self.text_area.insert(tk.END, "灯  塔", "emphasis")
+        # 使用专用 tag 做渐显，避免覆盖全局 emphasis tag
+        self._title_index = self.text_area.index("end-1c")
+        self.text_area.insert(tk.END, "灯  塔", "title_fade")
         self.text_area.insert(tk.END, "\n\n")
-        self.text_area.tag_configure("emphasis",
-            foreground=self.COLORS["emphasis"],
+        self.text_area.tag_configure("title_fade",
+            foreground="#000000",
             font=("Microsoft YaHei", 22, "bold"),
             justify="center")
         self.text_area.tag_add("center", "1.0", "end")
         self.text_area.see(tk.END)
         self.text_area.config(state=tk.DISABLED)
+        # 渐显动画 1.5s #cc0000，完成后显示菜单
+        self._animate_fade("title_fade", "#000000", "#cc0000", 1500,
+                           on_done=self._show_title_menu_after_animate)
+
+    def _show_title_menu_after_animate(self):
+        """标题浮现完毕，显示菜单"""
+        # 将 title_fade tag 转回 emphasis 以保持一致性
+        self.text_area.tag_configure("title_fade",
+            foreground="#cc0000",
+            font=("Microsoft YaHei", 22, "bold"))
         self._show_menu(["新游戏", "继续游戏", "退出"])
 
 
@@ -360,6 +373,17 @@ class MainWindow:
         self._show_menu(labels)
 
     # ========== 文本操作 ==========
+
+    def flash_black_transition(self, callback):
+        """节点切换黑屏过渡0.3s，然后执行回调（OPT-07）"""
+        overlay = tk.Frame(self.root, bg="#000000")
+        overlay.place(x=0, y=0, relwidth=1, relheight=1)
+        overlay.lift()
+        def _done():
+            overlay.destroy()
+            callback()
+        self.root.after(300, _done)
+
 
     def show_chunked_text(self, full_text: str, mood: str = None):
         """按 \n\n 分块，逐块逐字打印。mood 可调打字速度。"""
@@ -555,9 +579,28 @@ class MainWindow:
                 self._show_prompt()
 
     def _show_prompt(self):
-        """显示翻页提示"""
+        """显示翻页提示并启动微弱闪烁"""
         self._append("\n\n")
         self._append_tagged("▼ 空格/回车继续", "prompt")
+        self._start_prompt_blink()
+
+    def _start_prompt_blink(self):
+        """提示符微弱闪烁动画（OPT-06）"""
+        self._cancel_prompt_blink()
+        def _blink(state=0):
+            if not self._chunks or self._is_typing or self._chunk_idx >= len(self._chunks):
+                return  # 提示符已不存在，停止闪烁
+            tag = "prompt" if not self._panel_open else "prompt"
+            color = "#555555" if state % 2 == 0 else "#333333"
+            self.text_area.tag_configure("prompt", foreground=color, font=self.FONT_SMALL)
+            self._prompt_blink_job = self.root.after(700, lambda: _blink(state + 1))
+        _blink()
+
+    def _cancel_prompt_blink(self):
+        """取消提示符闪烁"""
+        if self._prompt_blink_job:
+            self.root.after_cancel(self._prompt_blink_job)
+            self._prompt_blink_job = None
 
     def _start_pause(self, seconds: float):
         """开始暂停计时，N 秒后自动翻页。玩家按空格可跳过。"""
@@ -594,6 +637,7 @@ class MainWindow:
 
     def _remove_prompt(self):
         """移除翻页提示"""
+        self._cancel_prompt_blink()
         self.text_area.config(state=tk.NORMAL)
         # 删除最后两行（空行+提示）
         last_line = self.text_area.index("end-1c linestart")
@@ -603,6 +647,7 @@ class MainWindow:
     def _on_all_chunks_done(self):
         """所有块打印完毕 → 触发回调，让外部显示选项"""
         self._is_typing = False
+        self._cancel_prompt_blink()
         if self.on_text_complete:
             self.on_text_complete()
 
@@ -669,62 +714,73 @@ class MainWindow:
                 parts.append("第{}章".format(chapter))
         parts.append("第 {} 天".format(day))
         self.day_label.config(text="  ".join(parts))
+        # OPT-10: 窗口标题栏同步章节名
+        if chapter:
+            self.root.title("灯塔 —— 第{}章 · {}".format(chapter, chapter_names.get(chapter, "")))
 
     def get_text_widget(self):
         return self.text_area
 
-    # ========== 存档/读档浮窗（4A） ==========
+    # ========== 存档/读档界面（OPT-13：纳入主窗口，不弹独立浮窗） ==========
 
     def show_save_dialog(self, slots_info, on_slot_click):
-        """显示存档浮窗。slots_info: [{"slot": 1, "exists": bool, "save_time":"", "day":1}, ...]"""
-        dlg = self._make_dialog("选择一个存档位")
-        for info in slots_info:
-            slot = info["slot"]
-            txt = "存档位 {} | ".format(slot)
-            txt += "{} | 第{}天".format(info["save_time"], info["day"]) if info["exists"] else "（空）"
-            self._dialog_row(dlg, txt, lambda s=slot: (on_slot_click(s), dlg.destroy()))
+        """显示存档界面（主窗口内右侧滑入）。slots_info: [{"slot": 1, "exists": bool, "save_time":"", "day":1}, ...]"""
+        self._show_save_load_dialog("存档", slots_info, on_slot_click)
 
     def show_load_dialog(self, slots_info, on_slot_click):
-        """显示读档浮窗。slots_info 同上"""
-        dlg = self._make_dialog("选择一个存档")
+        """显示读档界面（主窗口内右侧滑入）。slots_info 同上"""
+        filtered = [s for s in slots_info if s.get("exists")]
+        if not filtered:
+            self.flash_save_status("没有可用的存档")
+            return
+        self._show_save_load_dialog("读档", filtered, on_slot_click)
+
+    def _show_save_load_dialog(self, title: str, slots_info: list, on_slot_click):
+        """存档/读档通用面板：右侧滑入，覆盖层半透明"""
+        self._sl_panel_open = True
+        # 遮罩层（点击关闭）
+        self._sl_dim = tk.Frame(self.root, bg="#000000")
+        self._sl_dim.place(x=0, y=0, relwidth=1, relheight=1)
+        self._sl_dim.lift()
+        self._sl_dim.bind("<Button-1>", lambda e: self._hide_save_load_dialog())
+        # 面板
+        self._sl_frame = tk.Frame(self.root, bg=self.COLORS["panel_bg"])
+        self._sl_frame.place(relx=1.0, y=0, relwidth=0.35, relheight=1, anchor="ne")
+        self._sl_frame.lift()
+        # 标题
+        tk.Label(self._sl_frame, text=title,
+                 font=("Microsoft YaHei", 13, "bold"),
+                 fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"]).pack(
+                     anchor=tk.W, padx=20, pady=(20, 12))
+        # 存档位列表
         for info in slots_info:
-            if info["exists"]:
-                txt = "存档位 {} | {} | 第{}天".format(
-                    info["slot"], info["save_time"], info["day"])
-                self._dialog_row(dlg, txt,
-                    lambda s=info["slot"]: (on_slot_click(s), dlg.destroy()))
+            slot = info["slot"]
+            if info.get("exists"):
+                txt = "存档位 {} | {} | 第{}天".format(slot, info.get("save_time", ""), info.get("day", "?"))
+            else:
+                txt = "存档位 {} | （空）".format(slot)
+            row = tk.Frame(self._sl_frame, bg=self.COLORS["panel_bg"])
+            row.pack(fill=tk.X, padx=20, pady=3)
+            lbl = tk.Label(row, text=txt,
+                           font=("Microsoft YaHei", 10),
+                           fg=self.COLORS["text"], bg=self.COLORS["panel_bg"],
+                           cursor="hand2", anchor=tk.W)
+            lbl.pack(fill=tk.X)
+            lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg=self.COLORS["accent"]))
+            lbl.bind("<Leave>", lambda e, l=lbl: l.config(fg=self.COLORS["text"]))
+            def make_cb(s=slot, cb=on_slot_click):
+                return lambda e: (self._hide_save_load_dialog(), cb(s))
+            lbl.bind("<Button-1>", make_cb())
 
-    def _make_dialog(self, title):
-        """创建纯黑底浮窗"""
-        dlg = tk.Toplevel(self.root)
-        dlg.title(title)
-        dlg.geometry("380x280")
-        dlg.configure(bg=self.COLORS["bg"])
-        dlg.transient(self.root)
-        dlg.grab_set()
-        tk.Label(dlg, text=title, font=("Microsoft YaHei", 12, "bold"),
-                 fg=self.COLORS["dim"], bg=self.COLORS["bg"]).pack(pady=16)
-        return dlg
-
-    def _dialog_row(self, dialog, text, callback):
-        """浮窗内一行居中可点击选项"""
-        row = tk.Frame(dialog, bg=self.COLORS["bg"])
-        row.pack(fill=tk.X, padx=24, pady=4)
-        tk.Label(row, text="", bg=self.COLORS["bg"],
-                 font=("", 1)).pack(side=tk.LEFT, expand=True)
-        lbl = tk.Label(row, text=text,
-                       font=("Microsoft YaHei", 10),
-                       fg=self.COLORS["text"], bg=self.COLORS["bg"],
-                       cursor="hand2")
-        lbl.pack(side=tk.LEFT)
-        tk.Label(row, text="", bg=self.COLORS["bg"],
-                 font=("", 1)).pack(side=tk.LEFT, expand=True)
-        def enter(e, l=lbl): l.config(fg=self.COLORS["accent"])
-        def leave(e, l=lbl): l.config(fg=self.COLORS["text"])
-        lbl.bind("<Enter>", enter)
-        lbl.bind("<Leave>", leave)
-        lbl.bind("<Button-1>", lambda e, cb=callback: cb())
-        row.bind("<Button-1>", lambda e, cb=callback: cb())
+    def _hide_save_load_dialog(self):
+        """关闭存档/读档面板"""
+        self._sl_panel_open = False
+        if hasattr(self, '_sl_dim') and self._sl_dim:
+            self._sl_dim.destroy()
+            self._sl_dim = None
+        if hasattr(self, '_sl_frame') and self._sl_frame:
+            self._sl_frame.destroy()
+            self._sl_frame = None
 
     # ========== 状态面板（4B：Tab 滑入遮罩） ==========
 
@@ -764,7 +820,7 @@ class MainWindow:
         if self._cached_status:
             self.update_panel_status(self._cached_status)
         self.update_panel_items(self._cached_items)
-        # 滑入动画：直接定位
+        # 滑入动画
         self._panel_frame.place(relx=1.0, y=0, relwidth=0.32, relheight=1,
                                 x=-int(self.root.winfo_width() * 0.32), anchor="ne")
         self.root.update()
@@ -772,8 +828,10 @@ class MainWindow:
                                 anchor="ne")
 
     def _hide_panel(self):
-        """关闭面板（M5: 恢复环境音效）"""
+        """关闭面板（清理 Canvas 滚动绑定）"""
         self._panel_open = False
+        if hasattr(self, '_panel_canvas') and self._panel_canvas:
+            self._panel_canvas.unbind_all("<MouseWheel>")
         if self._dim_layer:
             self._dim_layer.destroy()
             self._dim_layer = None
@@ -781,42 +839,90 @@ class MainWindow:
             self._panel_frame.destroy()
             self._panel_frame = None
         if self.on_toggle_panel:
-            self.on_toggle_panel(False)  # M5: 通知 Game 面板已关闭，恢复音效
+            self.on_toggle_panel(False)
 
     def _build_panel_content(self):
-        """构建面板内容：今日笔记 + 角色状态 + 物品列表"""
+        """构建面板内容：可滚动区域（OPT-14）+ 标题/笔记/状态/物品"""
         pad = 16
-        # 标题
-        tk.Label(self._panel_frame, text="备忘录",
+        # 标题（固定不滚动）
+        self._panel_title = tk.Label(self._panel_frame, text="备忘录",
                  font=("Microsoft YaHei", 13, "bold"),
-                 fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"]).pack(
-                     anchor=tk.W, padx=pad, pady=(16, 8))
-        # 今日笔记
-        self._panel_notes_label = tk.Label(self._panel_frame, text="",
-                 font=("Microsoft YaHei", 9, "italic"),
-                 fg="#555555", bg=self.COLORS["panel_bg"],
-                 wraplength=200, justify=tk.LEFT, anchor=tk.W)
-        self._panel_notes_label.pack(fill=tk.X, padx=pad, pady=(0, 10))
-        # 状态
-        tk.Label(self._panel_frame, text="状态",
+                 fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"])
+        self._panel_title.pack(anchor=tk.W, padx=pad, pady=(16, 8))
+        # 可滚动内容区（Canvas + 内嵌 Frame）
+        canvas_container = tk.Frame(self._panel_frame, bg=self.COLORS["panel_bg"])
+        canvas_container.pack(fill=tk.BOTH, expand=True, padx=(pad, 0))
+        self._panel_canvas = tk.Canvas(canvas_container, bg=self.COLORS["panel_bg"],
+                                        highlightthickness=0, bd=0)
+        scrollbar = tk.Scrollbar(canvas_container, orient=tk.VERTICAL,
+                                  command=self._panel_canvas.yview)
+        self._panel_inner = tk.Frame(self._panel_canvas, bg=self.COLORS["panel_bg"])
+        self._panel_inner.bind("<Configure>",
+            lambda e: self._panel_canvas.configure(scrollregion=self._panel_canvas.bbox("all")))
+        self._panel_canvas_window = self._panel_canvas.create_window((0, 0), window=self._panel_inner, anchor=tk.NW)
+        def _on_panel_canvas_resize(event):
+            self._panel_canvas.itemconfig(self._panel_canvas_window, width=event.width)
+        self._panel_canvas.bind("<Configure>", _on_panel_canvas_resize)
+        self._panel_canvas.configure(yscrollcommand=scrollbar.set)
+        self._panel_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self._panel_canvas.bind("<Enter>", lambda e: self._panel_canvas.bind_all("<MouseWheel>",
+            lambda ev: (self._panel_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")
+                        if self._panel_canvas and self._panel_canvas.winfo_exists() else None)))
+        self._panel_canvas.bind("<Leave>", lambda e: self._panel_canvas.unbind_all("<MouseWheel>"))
+
+        # 今日笔记（在滚动区内，使用 tk.Text 支持富文本标记 OPT-14）
+        self._panel_notes_text = tk.Text(
+            self._panel_inner,
+            wrap=tk.WORD,
+            font=("Microsoft YaHei", 9, "italic"),
+            fg="#555555", bg=self.COLORS["panel_bg"],
+            borderwidth=0, highlightthickness=0,
+            relief=tk.FLAT,
+            width=28, height=4,
+            state=tk.DISABLED,
+        )
+        self._panel_notes_text.pack(fill=tk.X, pady=(0, 10))
+        self._panel_notes_text.tag_configure("notes",
+            foreground="#555555", font=("Microsoft YaHei", 9, "italic"))
+        self._panel_notes_text.tag_configure("marked",
+            foreground="#cc6600", font=("Microsoft YaHei", 9, "italic", "underline"))
+        # 状态标题
+        tk.Label(self._panel_inner, text="状态",
                  font=("Microsoft YaHei", 9, "bold"),
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(
-                     anchor=tk.W, padx=pad, pady=(4, 6))
-        self._panel_status_area = tk.Frame(self._panel_frame, bg=self.COLORS["panel_bg"])
-        self._panel_status_area.pack(fill=tk.X, padx=pad)
-        # 物品
-        tk.Label(self._panel_frame, text="随身物品",
+                     anchor=tk.W, pady=(4, 6))
+        self._panel_status_area = tk.Frame(self._panel_inner, bg=self.COLORS["panel_bg"])
+        self._panel_status_area.pack(fill=tk.X)
+        # 物品标题
+        tk.Label(self._panel_inner, text="随身物品",
                  font=("Microsoft YaHei", 9, "bold"),
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(
-                     anchor=tk.W, padx=pad, pady=(12, 6))
-        self._panel_items_area = tk.Frame(self._panel_frame, bg=self.COLORS["panel_bg"])
-        self._panel_items_area.pack(fill=tk.X, padx=pad)
+                     anchor=tk.W, pady=(12, 6))
+        self._panel_items_area = tk.Frame(self._panel_inner, bg=self.COLORS["panel_bg"])
+        self._panel_items_area.pack(fill=tk.X)
 
     def update_panel_notes(self, text: str):
-        """更新面板今日笔记（始终缓存，面板关闭时数据不丢失）"""
+        """更新面板今日笔记（始终缓存）。‡text‡ 渲染为金色下划线（OPT-14）"""
         self._cached_notes = text
-        if self._panel_frame and hasattr(self, '_panel_notes_label'):
-            self._panel_notes_label.config(text=text)
+        if not self._panel_frame:
+            return
+        if not hasattr(self, '_panel_notes_text'):
+            return
+        self._panel_notes_text.config(state=tk.NORMAL)
+        self._panel_notes_text.delete("1.0", tk.END)
+        if not text:
+            self._panel_notes_text.config(state=tk.DISABLED)
+            return
+        import re
+        segments = re.split(r'(‡.*?‡)', text)
+        for seg in segments:
+            if seg.startswith("‡") and seg.endswith("‡"):
+                inner = seg[1:-1]
+                self._panel_notes_text.insert(tk.END, inner, "marked")
+            else:
+                self._panel_notes_text.insert(tk.END, seg, "notes")
+        self._panel_notes_text.config(state=tk.DISABLED)
 
     def update_panel_status(self, descriptions):
         """更新面板状态区（始终缓存）。descriptions: {"curiosity":"...", "sanity":"...", "trust":"..."}"""

@@ -3,7 +3,7 @@
   "markers": {
     "[shake]...[/shake]": { "status": "已实现", "engine": "main_window.py _extract_shake + _start_shake_animation", "limit": "≤3次/章" },
     "[pause N]": { "status": "已实现", "engine": "main_window.py _extract_pause + _start_pause", "params": "N=秒数(浮点)" },
-    "[sound name]": { "status": "引擎已就绪，播放已暂停", "engine": "main_window.py _extract_sound + sound_manager.play()", "note": "音效全局暂停，待配表工具" },
+    "[sound name]": { "status": "引擎已就绪，播放已暂停", "engine": "main_window.py _extract_sound + sound_manager.play()", "note": "音效全局暂停，待配表工具。ND 继续预标 [sound name]，音效恢复后直接生效。" },
     "multi_click": { "status": "已实现", "engine": "main.py cmd_choice + main_window.py update_choice_label(含渐变色)", "params": "count=次数, texts=[渐变文字]" },
     "text_bridges": { "status": "已实现", "engine": "story_engine.py get_current_text()", "params": "{node_id: bridge_text, *: fallback}" },
     "auto_next": { "status": "已实现", "engine": "story_engine.py _jump_to_node + main.py cmd_auto_advance" },
