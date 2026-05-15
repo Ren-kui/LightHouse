@@ -1,6 +1,6 @@
 ﻿# Bug 清单
 
-> 维护者：QA（实际执行：老板/FD） | 最后更新：2026-05-12
+> 维护者：QA（实际执行：老板/FD） | 最后更新：2026-05-14
 >
 > FD 修复后不得自行标记"已修复"——须老板物理验证后由 QA 关闭。
 
@@ -36,6 +36,10 @@
 | B018 | `_display_node` 直接读 `node["text"]` 绕过 `get_current_text()` 中的 text_bridges 拼接，导致全部桥段静默失效 | P0 | 老板 | FD | 2026-05-11 | 2026-05-11 |
 | B019 | MG2 太阳能反应光点叠层——`_hit_dot` 与 `_miss_dot` 竞态下 `_spawn_flash` 重复调用，光点成对出现并位置叠加。在 `_clear_dot_and_next` 中 cancel 旧 `_spawn_timer` 修复 | P1 | 老板 | FD | 2026-05-12 | 2026-05-12 |
 | B020 | GM 面板关闭后滚轮 TclError——`bind_all("<MouseWheel>")` 残留绑定访问已销毁 canvas。`_hide_gm_panel` 加 `unbind_all` + lambda 加 `winfo_exists` 守卫 | P1 | 老板 | FD | 2026-05-12 | 2026-05-12 |
+| B021 | B2 MG1 `_clear_all_highlights` 残留拆包死代码——`_, color = self._relays[0]` 对 4 元组拆 2 值导致 ValueError。删除残留空循环修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B022 | B5 MG4B5 `_draw_shrink` 颜色溢出——`_shrink` 超出 1.0 时 `int(100+shrink*155)` > 255 产生无效 hex `#1000000`。全颜色计算加 `min(1.0, shrink)` 钳制修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B023 | B5 MG4B5 暗红收缩提前死亡——`_draw_shrink` 用 `min(area_w,area_h)` 算收缩值导致 X/Y 不同步收缩到极限前就判定 `_shrink≥1` 死亡。改为独立 `mx`/`my` 分别收缩 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B024 | B3 MG2 测试失败——旧 API `_hit_dot`/`_miss_dot`/`_clear_dot_and_next`/`_current_dot` 在 B3 重写中删除，`test_interaction.py` 和 `test_qa_logic.py` 引用旧方法导致 3/97 FAIL。适配新 API 修复 | P1 | FD | FD | 2026-05-14 | 2026-05-14 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |

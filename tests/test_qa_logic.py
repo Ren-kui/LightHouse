@@ -105,10 +105,10 @@ class TestQAMultiClick(unittest.TestCase):
 
 
 class TestQAMinigameLifecycle(unittest.TestCase):
-    """验证 MG2 竞态修复：_clear_dot_and_next cancel _spawn_timer"""
+    """验证 MG2 竞态修复：_schedule_next cancel _spawn_timer（B3）"""
 
     def test_clear_dot_cancels_spawn(self):
-        """_clear_dot_and_next 调度前 cancel 旧 _spawn_timer"""
+        """_schedule_next 调度前 cancel 旧 _spawn_timer"""
         from minigame_base import MG2_SolarReaction
         import tkinter as tk
         root = tk.Tk()
@@ -119,14 +119,14 @@ class TestQAMinigameLifecycle(unittest.TestCase):
         # 模拟已有 _spawn_timer
         fake_id = 99999
         mg._spawn_timer = fake_id
-        mg._current_dot = (100, 100, 20, None, None)
-        # 模拟 canvas 存在
+        mg._dots = []
+        mg._dots_alive = False
         mg.canvas = tk.Canvas(frm, width=100, height=100)
         try:
-            mg._clear_dot_and_next()
+            mg._schedule_next()
             # 若 _spawn_timer 已被 cancel 并被替换，不应崩溃
             self.assertNotEqual(mg._spawn_timer, fake_id,
-                "_clear_dot_and_next 应取消旧 _spawn_timer 并设置新的")
+                "_schedule_next 应取消旧 _spawn_timer 并设置新的")
         finally:
             root.destroy()
 

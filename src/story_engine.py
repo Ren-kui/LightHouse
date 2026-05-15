@@ -167,6 +167,8 @@ class StoryEngine:
                 "failure_node": choice.get("failure_node"),
                 "success_effects": choice.get("success_effects"),
                 "failure_effects": choice.get("failure_effects"),
+                "success_flags": choice.get("success_flags"),
+                "failure_flags": choice.get("failure_flags"),
             }
 
         # 普通选择：执行 effects + set_flags + 跳转节点
@@ -188,11 +190,14 @@ class StoryEngine:
         return self.get_current_node()
 
     def apply_minigame_result(self, success: bool, mg_info: dict):
-        """小游戏结束后，根据结果执行 effects 并跳转到对应节点"""
+        """小游戏结束后，根据结果执行 effects + flags 并跳转到对应节点"""
         key = "success" if success else "failure"
         effects = mg_info.get(f"{key}_effects")
         if effects:
             self.state.apply_effects(effects)
+        flags = mg_info.get(f"{key}_flags")
+        if flags:
+            self.flags.update(flags)
         nxt = mg_info.get(f"{key}_node")
         if nxt:
             self._jump_to_node(nxt)

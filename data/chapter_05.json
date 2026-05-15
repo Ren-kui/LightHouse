@@ -12,6 +12,7 @@
       "choices": [
         {
           "label": "\"它找过你儿子。\"——这句话不是问出来的",
+          "important": true,
           "next_node": "ch05_talk_zhang",
           "effects": {
             "trust": 0,
@@ -32,6 +33,7 @@
       "choices": [
         {
           "label": "\"你想过给它替身吗。\"——问出这句话，你的声音比想象中更稳",
+          "important": true,
           "next_node": "ch05_diary_reveal",
           "effects": {
             "trust": 1,
@@ -111,6 +113,7 @@
       "choices": [
         {
           "label": "\"我们还有多少时间？\"——和他一起制定计划",
+          "important": true,
           "next_node": "ch05_cooperation",
           "effects": {
             "trust": 1,
@@ -128,6 +131,7 @@
         },
         {
           "label": "\"我自己会想办法。\"——不能把全部希望压在一个随时可能崩溃的人身上",
+          "important": true,
           "next_node": "ch05_confrontation",
           "effects": {
             "trust": -1,
@@ -190,6 +194,7 @@
       "choices": [
         {
           "label": "\"一起上去！\"——这一次你们必须并肩跑",
+          "important": true,
           "next_node": "ch05_mg5",
           "effects": {
             "trust": 2,
@@ -208,6 +213,7 @@
         },
         {
           "label": "\"我去重启——你守住底层阀门！\"——自己冲上去",
+          "important": true,
           "next_node": "ch05_mg5_solo",
           "effects": {
             "survival_will": 2,
@@ -220,6 +226,7 @@
         },
         {
           "label": "跑到通讯室——联系补给船，今晚就走。不能再等了",
+          "important": true,
           "next_node": "ch05_early_escape",
           "effects": {
             "trust": -2,
@@ -249,6 +256,7 @@
       "choices": [
         {
           "label": "开始——没有退路了",
+          "important": true,
           "minigame": "MG5",
           "success_node": "ch05_mg5_survive",
           "success_effects": {
@@ -268,6 +276,7 @@
       "choices": [
         {
           "label": "开始——没有退路了",
+          "important": true,
           "minigame": "MG5",
           "success_node": "ch05_mg5_survive",
           "success_effects": {
@@ -287,6 +296,7 @@
       "choices": [
         {
           "label": "\"明天我会做一个决定。\"——把他的手从自己手腕上按了一下",
+          "important": true,
           "next_node": null,
           "effects": {
             "survival_will": 1,

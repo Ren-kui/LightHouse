@@ -227,3 +227,20 @@
 | 2026-05-14 | docs/agents.md | 更新 | QA P1 追加留痕纪律（命令输出/声明一致性/数据完整性主动扫描）；QA P3 追加 bug_list 主动扫描提醒；QA 边界追加可追溯要求 |
 | 2026-05-14 | docs/work_standards.md | 更新 | W005 QA 声明格式升级：新增测试输出/FD声明一致性/数据完整性三个强制字段，禁止模糊陈述 |
 | 2026-05-14 | docs/decisions.md | 新增 | D044：QA 留痕纪律强化（被动记录员→主动留痕审计） |
+| 2026-05-14 | src/main_window.py | 更新 | B1: OPT-11 小游戏界面居中 + UI 外框——minigame_area 改为居中 700×550 固定尺寸框架，外框 #555555 3px；所有小游戏自动受益 |
+| 2026-05-14 | src/minigame_base.py | 重写 | B2: MG1 配电连线——6对端子+6中继点+亮灭灯循环(亮1.5s/灭2.5s)；左→中继→右三段点击配对 |
+| 2026-05-14 | src/minigame_base.py | 修复 | B2 后续：`_clear_all_highlights` 删除残留拆包死代码（`_, color = self._relays[0]` 4元组拆2值导致 ValueError） |
+| 2026-05-14 | src/main_window.py / minigame_base.py | 修复 | B2/MG1: 灭灯阶段不再清除选中状态；亮灯恢复已选高亮；灭灯时中继点保持暗色；时间30→36s；中继Y序打乱(错位不失控)；画布<50阈值兜底；游戏区居中扣状态栏+<100窗口尺寸兜底 |
+| 2026-05-14 | docs/bug_list.md | 新增 | B021：B2 MG1 `_clear_all_highlights` ValueError P0/FD自发现 |
+| 2026-05-14 | docs/work_standards.md / agents.md | 更新 | FD W005 声明 + FD P4 追加 "crash 必须报告" 条款，填补 FD 自发现 bug 的记录空白 |
+| 2026-05-14 | src/minigame_base.py | 重写 | B3: MG2 太阳能反应——黄点缩小至50%+蓝干扰点(0-2，点中-1)+光点移动+15%双黄点；目标6/12 |
+| 2026-05-14 | tests/test_interaction.py / test_qa_logic.py | 更新 | B3: 适配新MG2 API（`_hit_yellow`/`_hit_blue`/`_schedule_next`） |
+| 2026-05-14 | src/minigame_base.py | 重写 | B4: MG4A 海鸟躲避——25s计时赛（被击中≤4次胜利），灰鸟1x/红鸟2.5x(1/15)，鼠标归正中心，`found_bird_skull` flag |
+| 2026-05-14 | src/story_engine.py / data/chapter_04.json | 更新 | B4: 小游戏结果新增 `success_flags` 支持，MG4A成功写入鸟头骨flag |
+| 2026-05-14 | src/minigame_base.py / main.py | 重写 | B5: 新增 MG4B5_DarkCircuit 复合小游戏——上屏6对配电+下屏暗红收缩(#aa0000)+能量条(30格/-1每2s/点击+1/过热10连击4s冷却/归零收缩×3/收缩≥1死亡) |
+| 2026-05-14 | src/minigame_base.py / main_window.py | 修复 | 全局居中：全部 `int(canvas["width"])`→`winfo_width()`+`<50`兜底；`show_minigame`加`update_idletasks()`强制渲染；status_bar高度扣除 |
+| 2026-05-14 | src/minigame_base.py | 优化 | B5 微调：收缩速度×4(0.008)、能量消退2s、X/Y独立收缩计算防提前死亡、起始红框#aa0000、能量条400ms闪烁提醒、"黑暗逼近！"移到底部中央、死亡警告字号加大 |
+| 2026-05-14 | docs/progress.md / design.md / agents.md / optimizations.md | 同步 | M6 20%→50%；B1~B5全部✅；design.md §2.4更新最终小游戏规格；OPT-11完成 |
+| 2026-05-14 | src/main_window.py | 新增 | 关键选项金色显示——`_show_menu`新增`styles`参数，`important:true`选项文字#ccaa00(金)/悬停#ffcc00(亮金) |
+| 2026-05-14 | data/chapter_02~06.json | 更新 | 24个关键选项加`"important":true`：minigame触发(8)+multi_click(1)+故事关键分支(15) |
+| 2026-05-14 | docs/design.md | 更新 | §4.2 JSON格式追加`"important"`字段说明 |

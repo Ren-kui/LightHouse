@@ -305,44 +305,44 @@ class MainWindow:
         self._show_menu(["新游戏", "继续游戏", "退出"])
 
 
-    def _show_menu(self, labels: list):
-        """显示居中箭头菜单（Label+Frame整行可点击）"""
+    def _show_menu(self, labels: list, styles: list = None):
+        """显示居中箭头菜单。styles: 并行列表，可选 {"important": True} 渲染金色文字"""
+        styles = styles or [{}] * len(labels)
         self.clear_choices()
         for i, label in enumerate(labels):
-            # 行容器 Frame，响应用户点击
+            st = styles[i] if i < len(styles) else {}
+            important = st.get("important", False)
+            text_color = "#ccaa00" if important else self.COLORS["text"]
+            hover_color = "#ffcc00" if important else self.COLORS["accent"]
+
             row = tk.Frame(self.choice_frame, bg=self.COLORS["bg"])
             row.pack(fill=tk.X, pady=3)
             self._choice_rows.append(row)
 
-            # 左侧占位（居中）
             tk.Label(row, text="", bg=self.COLORS["bg"],
                      font=("", 1)).pack(side=tk.LEFT, expand=True)
 
-            # 箭头
             arrow = tk.Label(row, text="\u25b6", font=self.FONT_MENU,
-                             fg=self.COLORS["text"], bg=self.COLORS["bg"],
+                             fg=text_color, bg=self.COLORS["bg"],
                              cursor="hand2")
             arrow.pack(side=tk.LEFT, padx=(0, 4))
 
-            # 文字
             text_lbl = tk.Label(row, text=label, font=self.FONT_MENU,
-                                fg=self.COLORS["text"], bg=self.COLORS["bg"],
+                                fg=text_color, bg=self.COLORS["bg"],
                                 cursor="hand2")
             text_lbl.pack(side=tk.LEFT)
             self._choice_labels.append(text_lbl)
 
-            # 右侧占位（居中）
             tk.Label(row, text="", bg=self.COLORS["bg"],
                      font=("", 1)).pack(side=tk.LEFT, expand=True)
 
-            # 整行悬停变色
             widgets = [arrow, text_lbl]
-            def enter(e, ws=widgets):
+            def enter(e, ws=widgets, hc=hover_color):
                 for w in ws:
-                    w.config(fg=self.COLORS["accent"])
-            def leave(e, ws=widgets):
+                    w.config(fg=hc)
+            def leave(e, ws=widgets, tc=text_color):
                 for w in ws:
-                    w.config(fg=self.COLORS["text"])
+                    w.config(fg=tc)
 
             row.bind("<Enter>", enter)
             row.bind("<Leave>", leave)
@@ -351,7 +351,6 @@ class MainWindow:
             text_lbl.bind("<Enter>", enter)
             text_lbl.bind("<Leave>", leave)
 
-            # 点击回调——绑定在整行 Frame 上，整行都是热区
             if label == "新游戏":
                 cb = lambda: self.on_menu_new_game and self.on_menu_new_game()
             elif label == "继续游戏":
@@ -367,10 +366,11 @@ class MainWindow:
             text_lbl.bind("<Button-1>", lambda e, c=cb: c())
 
     def show_choices(self, choice_list: list):
-        """显示剧情选项（居中 ▶ 按钮）。choice_list: [{"label": "..."}]"""
+        """显示剧情选项（居中 ▶ 按钮）。choice_list: [{"label": "...", "important": bool}]"""
         labels = [c.get("label", "???") for c in choice_list]
+        styles = [{"important": c.get("important", False)} for c in choice_list]
         self._choice_labels = []
-        self._show_menu(labels)
+        self._show_menu(labels, styles)
 
     # ========== 文本操作 ==========
 
@@ -886,7 +886,7 @@ class MainWindow:
         self._panel_notes_text.tag_configure("notes",
             foreground="#555555", font=("Microsoft YaHei", 9, "italic"))
         self._panel_notes_text.tag_configure("marked",
-            foreground="#cc6600", font=("Microsoft YaHei", 9, "italic", "underline"))
+            foreground="#008800", font=("Microsoft YaHei", 9, "italic", "underline"))
         # 状态标题
         tk.Label(self._panel_inner, text="状态",
                  font=("Microsoft YaHei", 9, "bold"),
@@ -1206,24 +1206,49 @@ class MainWindow:
                 return lambda e: (self.on_gm_preset(preset_name), self._hide_gm_panel())
             btn.bind("<Button-1>", make_cb())
 
-    # ========== 小游戏区域（4C） ==========
+    # ========== 小游戏区域（OPT-11: 居中 + UI 框） ==========
+
+    MG_WIDTH = 700
+    MG_HEIGHT = 550
 
     def _build_minigame_area(self):
-        """构建小游戏覆盖层 Frame（默认隐藏）"""
-        self.minigame_area = tk.Frame(self.root, bg="#000000")
+        """构建小游戏外层居中框架（固定尺寸+外框）"""
+        # 外层居中容器（带 #555555 可见边框）
+        self._mg_outer = tk.Frame(self.root, bg="#000000",
+                                   highlightbackground="#555555",
+                                   highlightthickness=3)
+        # 内层游戏区（MinigameBase / DarknessOverlay 的父容器）
+        self.minigame_area = tk.Frame(self._mg_outer, bg="#000000")
+        self.minigame_area.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
 
     def show_minigame(self):
-        """显示小游戏覆盖层——铺满整个窗口，屏蔽文本区键盘事件"""
+        """显示小游戏覆盖层——全屏黑底 + 居中固定尺寸 700×550，带 #555555 可见外框"""
         self.text_area.unbind("<space>")
         self.text_area.unbind("<Return>")
         self.text_area.unbind("<Button-1>")
-        self.minigame_area.place(x=0, y=0, relwidth=1, relheight=1)
-        self.minigame_area.lift()
-        self.minigame_area.focus_set()
+        # 全屏黑色遮罩（屏蔽文本区）
+        self._mg_backdrop = tk.Frame(self.root, bg="#000000")
+        self._mg_backdrop.place(x=0, y=0, relwidth=1, relheight=1)
+        self._mg_backdrop.lift()
+        # 居中（减去底部 32px 状态栏）；未渲染时用默认尺寸兜底
+        ww = self.root.winfo_width()
+        wh = self.root.winfo_height()
+        if ww < 100 or wh < 100:
+            ww, wh = 860, 640
+        wh -= 32
+        x = (ww - self.MG_WIDTH) // 2
+        y = (wh - self.MG_HEIGHT) // 2
+        self._mg_outer.place(x=x, y=y, width=self.MG_WIDTH, height=self.MG_HEIGHT)
+        self._mg_outer.lift()
+        self._mg_outer.focus_set()
+        self.root.update_idletasks()  # 强制渲染布局，确保 winfo_width 正确
 
     def hide_minigame(self):
         """隐藏小游戏覆盖层，恢复文本区键盘事件"""
-        self.minigame_area.place_forget()
+        if hasattr(self, '_mg_backdrop') and self._mg_backdrop:
+            self._mg_backdrop.destroy()
+            self._mg_backdrop = None
+        self._mg_outer.place_forget()
         for child in list(self.minigame_area.winfo_children()):
             child.destroy()
         self.text_area.bind("<space>", self._on_text_advance)

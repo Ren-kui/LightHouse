@@ -14,14 +14,14 @@ main.py —— 游戏主入口 + Game 状态机
 """
 
 import tkinter as tk
-import sys, os
+import sys, os, json
 
 from state_manager import StateManager
 from save_manager import SaveManager
 from story_engine import StoryEngine
 from main_window import MainWindow
 from sound_manager import SoundManager
-from minigame_base import MG1_PowerConnect, MG2_SolarReaction, MG3_PlatformBalance, MG4A_SeabirdDodge
+from minigame_base import MG1_PowerConnect, MG2_SolarReaction, MG3_PlatformBalance, MG4A_SeabirdDodge, MG4B5_DarkCircuit
 from darkness_overlay import DarknessOverlay
 
 # 结局路由映射（结局 ID → 章节 6 结局链首节点）
@@ -105,7 +105,50 @@ class Game:
         # multi_click 状态：{choice_index: click_count}
         self._multi_click_state = {}
 
-    # ========== FSM 状态转移 ==========
+        # 日记数据
+        self._diary_data = self._load_diary()
+
+    def _load_diary(self):
+        """加载日记数据"""
+        try:
+            with open(os.path.join("data", "diary.json"), "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"thresholds": {}, "days": {}}
+
+    def _get_diary_text(self):
+        """根据当前 day 和变量值从 diary.json 拼接日记文本"""
+        days_data = self._diary_data.get("days", {})
+        thresholds = self._diary_data.get("thresholds", {})
+        day_key = str(self.story.day)
+        day_entry = days_data.get(day_key, {})
+        if not day_entry:
+            return ""
+
+        chapter_names = {1: "抵达", 2: "初现", 3: "深入",
+                         4: "抉择", 5: "对抗", 6: "结局"}
+        cname = chapter_names.get(self.story.chapter, "第{}章".format(self.story.chapter))
+        lines = ["第{}天 · {}".format(self.story.day, cname), ""]
+
+        var_map = [
+            ("sanity", "sanity"),
+            ("curiosity", "curiosity"),
+            ("trust", "trust"),
+            ("survival_will", "survival_will"),
+        ]
+        for diary_key, state_key in var_map:
+            entry = day_entry.get(diary_key, {})
+            if not entry:
+                continue
+            val = self.state_mgr.get(state_key)
+            th = thresholds.get(diary_key, {})
+            low_max = th.get("low_max", 4)
+            if val <= low_max:
+                lines.append(entry.get("low", ""))
+            else:
+                lines.append(entry.get("high", ""))
+            lines.append("")
+        return "\n".join(lines).strip()
 
     def _goto(self, state: str):
         """状态转移（单出口，方便加日志）"""
@@ -283,25 +326,8 @@ class Game:
         for key in ["curiosity", "sanity", "trust"]:
             desc[key] = self.state_mgr.describe(key, day=self.story.day)
         self.window.update_panel_status(desc)
-        # 今日笔记（含章节名 + 天数）
-        chapter_names = {1: "抵达", 2: "初现", 3: "深入",
-                         4: "抉择", 5: "对抗", 6: "结局"}
-        cname = chapter_names.get(self.story.chapter, "第{}章".format(self.story.chapter))
-        notes = "第{}天 · {}\n——".format(self.story.day, cname)
-        if self.story.day == 1:
-            notes += " 抵达灯塔。认识了守塔人张海生。"
-        elif self.story.day == 2:
-            notes += " 完成设备维护。塔里的声音让人在意。"
-        elif self.story.day == 3:
-            notes += " 听到了不该听到的声音。水下有东西。"
-        elif self.story.day == 4:
-            notes += " 高空作业。塔的下面藏着什么。"
-        elif self.story.day == 5:
-            notes += " 发现了被封住的地下室。墙上有字。"
-        elif self.story.day == 6:
-            notes += " 找到了不该存在的空间。和遗留的痕迹。"
-        elif self.story.day >= 7:
-            notes += " 继续守塔的日子。"
+        # 日记文本（从 diary.json 按变量分支拼接）
+        notes = self._get_diary_text()
         self.window.update_panel_notes(notes)
         # 物品列表
         items = []
@@ -475,22 +501,21 @@ class Game:
         self._goto("MINIGAME")
         self.window.clear_choices()
 
-        # MG4B 黑暗收缩：使用 DarknessOverlay（点击重启交互）
+        # MG4B 黑暗收缩复合：上配电+下收缩+能量条
         if mg_name == "MG4B":
-            self._mg_instance = DarknessOverlay(self.window.minigame_area)
-            self._mg_instance.set_complete_callback(
-                lambda s: self._on_minigame_complete(s))
+            self._mg_instance = MG4B5_DarkCircuit(self.window.minigame_area)
+            self._mg_instance.set_complete_callback(self._on_minigame_complete)
             self.window.show_minigame()
-            self._mg_instance.start(duration_seconds=50)
+            self._mg_instance.start()
             return
 
-        # MG5 黑暗收缩·对抗：使用 DarknessOverlay V2 不对称收缩
+        # MG5 同上，时间压缩至45秒
         if mg_name == "MG5":
-            self._mg_instance = DarknessOverlay(self.window.minigame_area)
-            self._mg_instance.set_complete_callback(
-                lambda s: self._on_minigame_complete(s))
+            self._mg_instance = MG4B5_DarkCircuit(self.window.minigame_area)
+            self._mg_instance.TIME_LIMIT = 45
+            self._mg_instance.set_complete_callback(self._on_minigame_complete)
             self.window.show_minigame()
-            self._mg_instance.start(duration_seconds=45, version=2)
+            self._mg_instance.start()
             return
 
         mg_cls = self.MG_MAP.get(mg_name)

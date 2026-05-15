@@ -95,37 +95,45 @@ class TestInteractionMinigameDot(unittest.TestCase):
         self.mg.destroy()
         self.root.destroy()
 
-    def test_current_dot_tuple_length(self):
-        """B013: _current_dot 赋值和解包必须一致（5 元组）"""
-        self.mg._current_dot = (100, 100, 20, "inner_id", "outer_id")
-        # 构造一个带 x/y 的事件对象（不通过 Tkinter 事件循环）
+    def test_click_with_yellow_dot(self):
+        """B3: _on_click 命中黄点不崩溃"""
+        self.mg._dots = [{"type": "yellow", "x": 100, "y": 100, "r": 20, "max_r": 20,
+                           "inner_id": "i1", "outer_id": "o1", "vx": 0, "vy": 0}]
+        self.mg._dots_alive = True
         class MockEvent:
             x = 105
             y = 105
         try:
             self.mg._on_click(MockEvent())
-        except ValueError as e:
-            self.fail("_on_click 解包错误: {}".format(e))
-
-    def test_hit_dot_unpack(self):
-        """_hit_dot 解包与 _current_dot 一致"""
-        self.mg._current_dot = (100, 100, 20, "inner_id", "outer_id")
-        try:
-            self.mg._hit_dot()
         except Exception as e:
-            self.fail("_hit_dot 失败: {}".format(e))
+            self.fail("_on_click 失败: {}".format(e))
 
-    def test_miss_dot_unpack(self):
-        """_miss_dot 解包与 _current_dot 一致"""
-        self.mg._current_dot = (100, 100, 20, "inner_id", "outer_id")
+    def test_hit_yellow_unpack(self):
+        """B3: _hit_yellow 正确操作 dot dict"""
+        d = {"type": "yellow", "x": 100, "y": 100, "r": 20, "max_r": 20,
+             "inner_id": "i1", "outer_id": "o1", "vx": 0, "vy": 0}
+        self.mg._dots = [d]
+        self.mg._dots_alive = True
         try:
-            self.mg._miss_dot()
+            self.mg._hit_yellow(d)
         except Exception as e:
-            self.fail("_miss_dot 失败: {}".format(e))
+            self.fail("_hit_yellow 失败: {}".format(e))
+
+    def test_hit_blue_unpack(self):
+        """B3: _hit_blue 正确操作 dot dict"""
+        d = {"type": "blue", "x": 100, "y": 100, "r": 20, "max_r": 20,
+             "inner_id": "i1", "outer_id": "o1", "vx": 0, "vy": 0}
+        self.mg._dots = [d]
+        self.mg._dots_alive = True
+        try:
+            self.mg._hit_blue(d)
+        except Exception as e:
+            self.fail("_hit_blue 失败: {}".format(e))
 
     def test_no_crash_on_click_without_dot(self):
-        """_on_click 在当前无光点时不应崩溃"""
-        self.mg._current_dot = None
+        """B3: _on_click 在当前无光点时不应崩溃"""
+        self.mg._dots = []
+        self.mg._dots_alive = False
         class MockEvent:
             x = 0
             y = 0

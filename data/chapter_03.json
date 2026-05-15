@@ -272,6 +272,7 @@
       "choices": [
         {
           "label": "继续拆墙，进去看",
+          "important": true,
           "next_node": "ch03_basement_enter",
           "effects": {
             "curiosity": 2,

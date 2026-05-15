@@ -12,6 +12,7 @@
       "choices": [
         {
           "label": "\"我想知道——全部。\"——最后一次追问",
+          "important": true,
           "next_node": "ch06_ask",
           "effects": { "curiosity": 1, "sanity": -1, "trust": 1, "survival_will": 0, "loyalty": 0 },
           "conditions": null,
@@ -19,6 +20,7 @@
         },
         {
           "label": "\"明天补给船来的时候，我会做一个决定。\"——给他承诺",
+          "important": true,
           "next_node": "ch06_promise",
           "effects": { "trust": 1, "loyalty": 1, "curiosity": 0, "sanity": 0, "survival_will": 0 },
           "conditions": null,

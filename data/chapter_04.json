@@ -12,6 +12,7 @@
       "choices": [
         {
           "label": "\"你见过它对你做什么？\"——追问下去",
+          "important": true,
           "next_node": "ch04_zhang_info",
           "effects": { "trust": 1, "curiosity": 1, "sanity": 0, "survival_will": 0, "loyalty": 0 },
           "conditions": { "trust": { "min": 6 } },
@@ -79,6 +80,7 @@
         },
         {
           "label": "打开那个第一天翻过的抽屉——你记得里面有东西",
+          "important": true,
           "next_node": "ch04_return_drawer",
           "effects": { "curiosity": 1, "sanity": 0, "trust": 0, "survival_will": 0, "loyalty": 0 },
           "set_flags": { "found_wangchao_drawing": true },
@@ -96,6 +98,7 @@
       "choices": [
         {
           "label": "跟着父亲走——你想听他再说下去",
+          "important": true,
           "next_node": "ch04_dream_follow",
           "effects": { "curiosity": 2, "sanity": -2, "trust": 0, "survival_will": 0, "loyalty": 0 },
           "conditions": null,
@@ -103,6 +106,7 @@
         },
         {
           "label": "转身——这不是真的",
+          "important": true,
           "next_node": "ch04_dream_awake",
           "effects": { "survival_will": 2, "sanity": -1, "trust": 0, "curiosity": 0, "loyalty": 0 },
           "conditions": null,
@@ -172,9 +176,11 @@
       "choices": [
         {
           "label": "躲开它们！",
+          "important": true,
           "minigame": "MG4A",
           "success_node": "ch04_seabird_success",
           "success_effects": { "survival_will": 1, "trust": 1, "sanity": 0, "curiosity": 0, "loyalty": 0 },
+          "success_flags": { "found_bird_skull": true },
           "failure_node": "ch04_seabird_failure",
           "failure_effects": { "sanity": -2, "survival_will": 0, "trust": 0, "curiosity": 0, "loyalty": 0 }
         }
@@ -242,6 +248,7 @@
       "choices": [
         {
           "label": "跑！往四楼去——必须重启供电！",
+          "important": true,
           "minigame": "MG4B",
           "success_node": "ch04_darkness_survive",
           "success_effects": { "survival_will": 0, "sanity": 0, "trust": 0, "curiosity": 0, "loyalty": 0 },
@@ -292,6 +299,7 @@
         },
         {
           "label": "翻开父亲的日志——反正睡不着，趁他还在，读一遍",
+          "important": true,
           "next_node": "ch04_dad_logbook",
           "effects": { "survival_will": 1, "sanity": 0, "trust": 0, "curiosity": 1, "loyalty": 0 },
           "set_flags": { "found_dad_logbook": true },
