@@ -2,6 +2,10 @@ __pycache__/
 *.pyc
 data/saves/
 data/sounds/
+dist/
+build/
+release/
+*.spec
 *.png
 *.jpg
 *.jpeg

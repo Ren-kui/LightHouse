@@ -1,10 +1,14 @@
 ﻿# 代码修改日志
 
 > 维护者：FD | 记录每次代码文件的增删改
-> 最后更新：2026-05-12
+> 最后更新：2026-05-15
 
 | 日期 | 文件 | 改动类型 | 描述 |
 |------|------|----------|------|
+| 2026-05-15 | tests/test_ending_reachability.py | 新建 | M6-1 全结局可达性测试（40 用例，8 结局全判定+优先级验证） |
+| 2026-05-15 | src/main.py | 修改 | M6-3 exe 打包路径适配：PyInstaller frozen 模式取 sys.executable 所在目录 |
+| 2026-05-15 | release/Lighthouse/ | 新建 | 分发包目录：Lighthouse.exe 10.1MB + data/ + 启动.bat |
+| 2026-05-15 | docs/progress.md, docs/agents.md | 更新 | M6 全部完成，M0~M6 100%，状态行同步 |
 | 2026-05-08 | 全部文档 | 新建 | 项目初始化，创建记忆文档系统 |
 | 2026-05-08 | docs/decisions.md, docs/design.md, docs/progress.md | 更新 | 同步黑暗收缩死亡场景设计（D015/D016），追加设计文档第十一章 |
 | 2026-05-08 | src/state_manager.py | 新建 | 变量管理器，含5变量显隐分离、边界保护、条件判定、文字描述转换 |

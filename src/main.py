@@ -50,8 +50,11 @@ class Game:
         self.root = tk.Tk()
         self.window = MainWindow(self.root)
 
-        # 确保工作目录为项目根
-        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # 确保工作目录为项目根（exe 模式下取 exe 所在目录）
+        if getattr(sys, 'frozen', False):
+            project_dir = os.path.dirname(os.path.abspath(sys.executable))
+        else:
+            project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         os.chdir(project_dir)
 
         # 子系统
