@@ -90,6 +90,11 @@ class MainWindow:
         self._cached_status = {}
         self._cached_items = []
 
+        # 日记缓存（多天翻阅）
+        self._diary_cache = {}
+        self._diary_view_day = 0
+        self._diary_latest_day = 0
+
     def set_sound_manager(self, sound_mgr):
         """由 Game.__init__ 注入 SoundManager 实例（M5 音效集成）"""
         self._sound_mgr = sound_mgr
@@ -185,9 +190,10 @@ class MainWindow:
                                   bg=self.COLORS["status_bg"])
         self.day_label.pack(side=tk.RIGHT, padx=20, pady=6)
 
-        tk.Label(self.status_bar, text="Tab 备忘录",
+        self._tab_hint = tk.Label(self.status_bar, text="Tab 备忘录",
                  font=("Microsoft YaHei", 7), fg="#333333",
-                 bg=self.COLORS["status_bg"]).pack(side=tk.RIGHT, padx=8, pady=6)
+                 bg=self.COLORS["status_bg"])
+        self._tab_hint.pack(side=tk.RIGHT, padx=8, pady=6)
         # GM 调试栏快捷键（仅 gm_enabled 时生效）
         self.root.bind("<Control-Shift-G>", lambda e: self._toggle_gm() if self.gm_enabled else None)
         self._panel_open = False
@@ -815,8 +821,9 @@ class MainWindow:
                                 anchor="ne")
         self._panel_frame.lift()
         self._build_panel_content()
-        # 从缓存渲染数据（面板关闭期间数据不丢失）
-        self.update_panel_notes(self._cached_notes)
+        # 从缓存渲染数据
+        if self._diary_cache:
+            self._render_diary()
         if self._cached_status:
             self.update_panel_status(self._cached_status)
         self.update_panel_items(self._cached_items)
@@ -828,10 +835,8 @@ class MainWindow:
                                 anchor="ne")
 
     def _hide_panel(self):
-        """关闭面板（清理 Canvas 滚动绑定）"""
+        """关闭面板"""
         self._panel_open = False
-        if hasattr(self, '_panel_canvas') and self._panel_canvas:
-            self._panel_canvas.unbind_all("<MouseWheel>")
         if self._dim_layer:
             self._dim_layer.destroy()
             self._dim_layer = None
@@ -866,26 +871,54 @@ class MainWindow:
         self._panel_canvas.configure(yscrollcommand=scrollbar.set)
         self._panel_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self._panel_canvas.bind("<Enter>", lambda e: self._panel_canvas.bind_all("<MouseWheel>",
+        # 画布本地滚轮
+        self._panel_canvas.bind("<MouseWheel>",
             lambda ev: (self._panel_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")
-                        if self._panel_canvas and self._panel_canvas.winfo_exists() else None)))
-        self._panel_canvas.bind("<Leave>", lambda e: self._panel_canvas.unbind_all("<MouseWheel>"))
+                        if self._panel_canvas.winfo_exists() else None))
 
-        # 今日笔记（在滚动区内，使用 tk.Text 支持富文本标记 OPT-14）
-        self._panel_notes_text = tk.Text(
-            self._panel_inner,
+        # 日记区（灰色边框 + 导航 + 加长文本区）
+        self._diary_frame = tk.LabelFrame(self._panel_inner, text="日记",
+            font=("Microsoft YaHei", 9, "bold"),
+            fg="#666666", bg=self.COLORS["panel_bg"],
+            foreground="#666666",
+            relief=tk.GROOVE, borderwidth=1)
+        self._diary_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # 导航栏
+        nav_bar = tk.Frame(self._diary_frame, bg=self.COLORS["panel_bg"])
+        nav_bar.pack(fill=tk.X, padx=4, pady=(4, 2))
+        self._diary_prev_btn = tk.Label(nav_bar, text="◀ 前一天",
+            font=("Microsoft YaHei", 8), fg="#555555",
+            bg=self.COLORS["panel_bg"], cursor="hand2")
+        self._diary_prev_btn.pack(side=tk.LEFT)
+        self._diary_prev_btn.bind("<Button-1>", lambda e: self._diary_nav(-1))
+        self._diary_day_label = tk.Label(nav_bar, text="",
+            font=("Microsoft YaHei", 8, "bold"), fg="#cccccc",
+            bg=self.COLORS["panel_bg"])
+        self._diary_day_label.pack(side=tk.LEFT, padx=12)
+        self._diary_next_btn = tk.Label(nav_bar, text="后一天 ▶",
+            font=("Microsoft YaHei", 8), fg="#555555",
+            bg=self.COLORS["panel_bg"], cursor="hand2")
+        self._diary_next_btn.pack(side=tk.LEFT)
+        self._diary_next_btn.bind("<Button-1>", lambda e: self._diary_nav(1))
+
+        self._panl_notes_text = tk.Text(
+            self._diary_frame,
             wrap=tk.WORD,
             font=("Microsoft YaHei", 9, "italic"),
             fg="#555555", bg=self.COLORS["panel_bg"],
             borderwidth=0, highlightthickness=0,
             relief=tk.FLAT,
-            width=28, height=4,
+            width=28, height=10,
             state=tk.DISABLED,
         )
-        self._panel_notes_text.pack(fill=tk.X, pady=(0, 10))
-        self._panel_notes_text.tag_configure("notes",
+        self._panl_notes_text.pack(fill=tk.X, padx=4, pady=(0, 6))
+        # 日记文本独立滚轮
+        self._panl_notes_text.bind("<MouseWheel>",
+            lambda ev: self._panl_notes_text.yview_scroll(int(-1 * (ev.delta / 120)), "units"))
+        self._panl_notes_text.tag_configure("notes",
             foreground="#555555", font=("Microsoft YaHei", 9, "italic"))
-        self._panel_notes_text.tag_configure("marked",
+        self._panl_notes_text.tag_configure("marked",
             foreground="#008800", font=("Microsoft YaHei", 9, "italic", "underline"))
         # 状态标题
         tk.Label(self._panel_inner, text="状态",
@@ -902,27 +935,64 @@ class MainWindow:
         self._panel_items_area = tk.Frame(self._panel_inner, bg=self.COLORS["panel_bg"])
         self._panel_items_area.pack(fill=tk.X)
 
-    def update_panel_notes(self, text: str):
-        """更新面板今日笔记（始终缓存）。‡text‡ 渲染为金色下划线（OPT-14）"""
-        self._cached_notes = text
-        if not self._panel_frame:
+    def update_panel_notes(self, text: str, day: int = None):
+        """更新面板日记。缓存数据，面板打开时才渲染。"""
+        if day is not None and text:
+            self._diary_cache[str(day)] = text
+            self._diary_latest_day = day
+            self._diary_view_day = day
+        if self._panel_frame and hasattr(self, '_panl_notes_text'):
+            try:
+                if self._panl_notes_text.winfo_exists():
+                    self._render_diary()
+            except tk.TclError:
+                pass
+
+    def _render_diary(self):
+        """渲染当前 _diary_view_day 对应的日记"""
+        if not hasattr(self, '_panl_notes_text'):
             return
-        if not hasattr(self, '_panel_notes_text'):
+        try:
+            if not self._panl_notes_text.winfo_exists():
+                return
+        except tk.TclError:
             return
-        self._panel_notes_text.config(state=tk.NORMAL)
-        self._panel_notes_text.delete("1.0", tk.END)
-        if not text:
-            self._panel_notes_text.config(state=tk.DISABLED)
+        day_key = str(self._diary_view_day)
+        text = self._diary_cache.get(day_key, "")
+        self._panl_notes_text.config(state=tk.NORMAL)
+        self._panl_notes_text.delete("1.0", tk.END)
+        if text:
+            import re
+            segments = re.split(r'(‡.*?‡)', text)
+            for seg in segments:
+                if seg.startswith("‡") and seg.endswith("‡"):
+                    self._panl_notes_text.insert(tk.END, seg[1:-1], "marked")
+                else:
+                    self._panl_notes_text.insert(tk.END, seg, "notes")
+        else:
+            self._panl_notes_text.insert(tk.END, "这一天还没有记录。", "notes")
+        self._panl_notes_text.config(state=tk.DISABLED)
+        if self._diary_view_day > 0:
+            ch_names = {1: "抵达", 2: "初现", 3: "深入", 4: "抉择", 5: "对抗", 6: "结局"}
+            ch = (self._diary_view_day - 1) // 2 + 1
+            ch = min(ch, 6)
+            cname = ch_names.get(ch, "")
+            self._diary_day_label.config(text="第{}天 · {}".format(self._diary_view_day, cname))
+        # 导航按钮可用性
+        self._diary_prev_btn.config(
+            fg="#888888" if self._diary_view_day <= 1 else "#cccccc",
+            cursor="hand2" if self._diary_view_day > 1 else "arrow")
+        self._diary_next_btn.config(
+            fg="#888888" if self._diary_view_day >= self._diary_latest_day else "#cccccc",
+            cursor="hand2" if self._diary_view_day < self._diary_latest_day else "arrow")
+
+    def _diary_nav(self, delta):
+        """日记导航：delta=-1上一天，delta=+1下一天"""
+        new_day = self._diary_view_day + delta
+        if new_day < 1 or new_day > self._diary_latest_day:
             return
-        import re
-        segments = re.split(r'(‡.*?‡)', text)
-        for seg in segments:
-            if seg.startswith("‡") and seg.endswith("‡"):
-                inner = seg[1:-1]
-                self._panel_notes_text.insert(tk.END, inner, "marked")
-            else:
-                self._panel_notes_text.insert(tk.END, seg, "notes")
-        self._panel_notes_text.config(state=tk.DISABLED)
+        self._diary_view_day = new_day
+        self._render_diary()
 
     def update_panel_status(self, descriptions):
         """更新面板状态区（始终缓存）。descriptions: {"curiosity":"...", "sanity":"...", "trust":"..."}"""
@@ -1205,6 +1275,26 @@ class MainWindow:
             def make_cb(preset_name=p["name"]):
                 return lambda e: (self.on_gm_preset(preset_name), self._hide_gm_panel())
             btn.bind("<Button-1>", make_cb())
+
+    # ========== 更新闪烁提示 ==========
+
+    def flash_update_indicator(self):
+        """Tab备忘录 + 状态栏提示呼吸闪光8秒"""
+        if not hasattr(self, '_tab_hint'):
+            return
+        if hasattr(self, '_flash_job') and self._flash_job:
+            self.root.after_cancel(self._flash_job)
+            self._flash_job = None
+        steps = 16
+        def _tick(s=0):
+            if s >= steps:
+                self._tab_hint.config(fg="#333333")
+                self._flash_job = None
+                return
+            color = "#cc6600" if s % 2 == 0 else "#333333"
+            self._tab_hint.config(fg=color)
+            self._flash_job = self.root.after(500, lambda: _tick(s + 1))
+        _tick()
 
     # ========== 小游戏区域（OPT-11: 居中 + UI 框） ==========
 

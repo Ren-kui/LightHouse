@@ -240,7 +240,7 @@
 | 2026-05-14 | src/minigame_base.py / main.py | 重写 | B5: 新增 MG4B5_DarkCircuit 复合小游戏——上屏6对配电+下屏暗红收缩(#aa0000)+能量条(30格/-1每2s/点击+1/过热10连击4s冷却/归零收缩×3/收缩≥1死亡) |
 | 2026-05-14 | src/minigame_base.py / main_window.py | 修复 | 全局居中：全部 `int(canvas["width"])`→`winfo_width()`+`<50`兜底；`show_minigame`加`update_idletasks()`强制渲染；status_bar高度扣除 |
 | 2026-05-14 | src/minigame_base.py | 优化 | B5 微调：收缩速度×4(0.008)、能量消退2s、X/Y独立收缩计算防提前死亡、起始红框#aa0000、能量条400ms闪烁提醒、"黑暗逼近！"移到底部中央、死亡警告字号加大 |
-| 2026-05-14 | docs/progress.md / design.md / agents.md / optimizations.md | 同步 | M6 20%→50%；B1~B5全部✅；design.md §2.4更新最终小游戏规格；OPT-11完成 |
+| 2026-05-14 | docs/work_standards.md / agents.md | 新增 | W010 状态隔离防卫：JSON写入即验证、状态属性 init 初始化不绑 widget 生命周期、widget 操作 winfo_exists 守卫、after_cancel 判真不传 0。复盘 B025~B028 |
 | 2026-05-14 | src/main_window.py | 新增 | 关键选项金色显示——`_show_menu`新增`styles`参数，`important:true`选项文字#ccaa00(金)/悬停#ffcc00(亮金) |
 | 2026-05-14 | data/chapter_02~06.json | 更新 | 24个关键选项加`"important":true`：minigame触发(8)+multi_click(1)+故事关键分支(15) |
 | 2026-05-14 | docs/design.md | 更新 | §4.2 JSON格式追加`"important"`字段说明 |

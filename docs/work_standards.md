@@ -69,7 +69,7 @@
 
 ---
 
-> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006 = W007 = W008 = W009（平等）
+> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006 = W007 = W008 = W009 = W010（平等）
 
 
 ## W007 · 小游戏生命周期防卫（MG4A 崩溃复盘）
@@ -98,6 +98,15 @@
 | **规则** | 同一状态判断逻辑存在于多个调用路径时，必须确认各路径实现一致。新增路径时须审计已有路径的同类逻辑，不得遗漏。 |
 | **自检** | FD 每次新增 `cmd_*` / `_on_*` 回调，检查是否有其他路径在同类状态下执行了额外逻辑 |
 | **依据** | ch06 结局循环 — `is_ending_node` 转发仅在 `_on_text_done` 实现，`cmd_choice` 遗漏。同类：B018 / MG4A `_on_stop` / `_complete` 同步回调——均为一逻辑两路径不对称 |
+
+
+## W010 · 状态隔离防卫（B025~B028 复盘）
+
+| 项 | 内容 |
+|---|------|
+| **规则** | ① JSON 数据文件写入后必须立即验证合法性（`json.load`），不得以 `try/except` 静默吞错。② 对象状态（缓存、标志位）必须在 `__init__` 中初始化，不得依赖 UI widget 的生命周期——widget 会被 `destroy()` 重建。③ 任何 widget 操作前必须 `winfo_exists()` 守卫。④ `after_cancel` 只 cancel 已有的有效 ID（判真再 cancel），不得用 `getattr(x, 0)` 等默认值。 |
+| **自检** | FD 每次新增 JSON 数据文件：写入后立即 `json.load` 验证。FD 每次新增 widget 相关属性：确认是否应在 `__init__` 初始化。FD 每次访问可能在面板关闭时被销毁的 widget：加 `winfo_exists()` + `try/except TclError`。FD 每次 `after_cancel`：确认变量可能为 None/0，先判真。 |
+| **依据** | B025 — diary.json 内层引号破坏 JSON → 静默失败日记不显示。B026 — `_diary_cache` 绑定到面板 widget 生命周期 → `cmd_gm_load_chapter` 面板未打开时 crash。B027 — 面板关闭后 `_render_diary` 访问已销毁 widget → TclError。B028 — `after_cancel(getattr(0))` 传 0 → ValueError。四 bug 根因相同：数据/状态/控件三层生命周期未隔离。 |
 
 
 > **关联文档**：`docs/decisions.md` / `docs/design.md` / `docs/progress.md` / `docs/test_report.md` / `docs/agents.md`（含会话规则）/ `docs/fd_selfcheck.md`（含交互矩阵）/ `docs/nd_selfcheck.md`

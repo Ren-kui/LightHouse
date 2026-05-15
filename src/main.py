@@ -107,6 +107,8 @@ class Game:
 
         # 日记数据
         self._diary_data = self._load_diary()
+        self._last_diary_day = 0       # 上次生成日记的天数（防止预知）
+        self._diary_snapshots = {}     # 日记快照 {day: text}（防止变量回溯修改）
 
     def _load_diary(self):
         """加载日记数据"""
@@ -321,19 +323,31 @@ class Game:
         pass
 
     def _refresh_panel(self):
-        """刷新状态面板：变量描述 + 今日笔记 + 物品列表"""
+        """刷新状态面板：变量描述 + 日记（天变化时快照） + 物品列表"""
         desc = {}
         for key in ["curiosity", "sanity", "trust"]:
             desc[key] = self.state_mgr.describe(key, day=self.story.day)
         self.window.update_panel_status(desc)
-        # 日记文本（从 diary.json 按变量分支拼接）
-        notes = self._get_diary_text()
-        self.window.update_panel_notes(notes)
+        # 日记：仅当天数变化时生成新快照，之后不变
+        new_diary = False
+        if self.story.day > self._last_diary_day:
+            notes = self._get_diary_text()
+            self._diary_snapshots[str(self.story.day)] = notes
+            self.window.update_panel_notes(notes, day=self.story.day)
+            self._last_diary_day = self.story.day
+            new_diary = True
         # 物品列表
         items = []
         if self.story.flags.get("found_diary_page"):
             items.append({"name": "日记残页", "desc": "1930年代守塔人的破旧日记，部分页面被撕去。"})
+        if self.story.flags.get("found_bird_skull"):
+            items.append({"name": "鸟头骨", "desc": "一颗很小的头骨，喙还完整。羽毛烂光了，但眼眶里有什么东西在看你。"})
+        if self.story.flags.get("found_wangchao_drawing"):
+            items.append({"name": "张望潮的水彩画", "desc": "一个孩子画的灯塔——但塔的底部画了一扇门，门里涂了全黑。"})
         self.window.update_panel_items(items)
+        # 更新闪烁提示
+        if new_diary:
+            self.window.flash_update_indicator()
 
     def _on_text_done(self):
         """文本全部打印完毕 → 显示可选选项，或自动推进"""

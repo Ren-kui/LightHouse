@@ -1,6 +1,6 @@
 ﻿# Bug 清单
 
-> 维护者：QA（实际执行：老板/FD） | 最后更新：2026-05-14
+> 维护者：QA（实际执行：老板/FD） | 最后更新：2026-05-15
 >
 > FD 修复后不得自行标记"已修复"——须老板物理验证后由 QA 关闭。
 
@@ -40,6 +40,10 @@
 | B022 | B5 MG4B5 `_draw_shrink` 颜色溢出——`_shrink` 超出 1.0 时 `int(100+shrink*155)` > 255 产生无效 hex `#1000000`。全颜色计算加 `min(1.0, shrink)` 钳制修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
 | B023 | B5 MG4B5 暗红收缩提前死亡——`_draw_shrink` 用 `min(area_w,area_h)` 算收缩值导致 X/Y 不同步收缩到极限前就判定 `_shrink≥1` 死亡。改为独立 `mx`/`my` 分别收缩 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
 | B024 | B3 MG2 测试失败——旧 API `_hit_dot`/`_miss_dot`/`_clear_dot_and_next`/`_current_dot` 在 B3 重写中删除，`test_interaction.py` 和 `test_qa_logic.py` 引用旧方法导致 3/97 FAIL。适配新 API 修复 | P1 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B025 | diary.json JSON 解析失败——ND 文本中混入 ASCII `"`（如 `"不太对"`）破坏 JSON 结构，导致 `_load_diary` 静默返回空字典，日记功能完全失效。重写文件消除所有内层引号修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B026 | `_diary_cache` AttributeError——`_diary_cache` 等属性在 `_build_panel_content()`（面板打开时）才初始化，但 `update_panel_notes` 在节点切换时就调用，面板未打开时属性不存在 → crash。属性移至 `__init__` 初始化修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B027 | `_panl_notes_text` TclError——`_render_diary` 在面板关闭时调用，widget 已被 `destroy()` 销毁，访问报 `invalid command name`。加 `winfo_exists()` + `try/except TclError` 守卫修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B028 | `after_cancel(0)` ValueError——`flash_update_indicator` 中用 `getattr(self, '_flash_job', 0)` 取默认值，`_flash_job` 不存在时返回 `0`，传 `after_cancel(0)` 报非法 ID。改为 `hasattr` 判真才 cancel 修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |
