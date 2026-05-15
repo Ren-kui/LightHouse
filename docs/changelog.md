@@ -244,3 +244,6 @@
 | 2026-05-14 | src/main_window.py | 新增 | 关键选项金色显示——`_show_menu`新增`styles`参数，`important:true`选项文字#ccaa00(金)/悬停#ffcc00(亮金) |
 | 2026-05-14 | data/chapter_02~06.json | 更新 | 24个关键选项加`"important":true`：minigame触发(8)+multi_click(1)+故事关键分支(15) |
 | 2026-05-14 | docs/design.md | 更新 | §4.2 JSON格式追加`"important"`字段说明 |
+| 2026-05-14 | data/diary.json | 新建 | 日记系统——14天×4变量(理智/好奇/信任/生存)×2分支(高/低)=112段填空骨架，阈值（理智≤4/好奇≤3/信任≤4/生存≤5），‡暗绿标记‡(#008800)渲染关键词组 |
+| 2026-05-14 | src/main.py | 更新 | `_load_diary`+`_get_diary_text`根据当前day和变量值从diary.json动态拼接日记；`_refresh_panel`接入日记替代旧笔记 |
+| 2026-05-14 | src/main_window.py | 更新 | marked tag颜色#cc6600→#008800（暗绿警告色），OPT-14标记语法‡text‡同步生效 |

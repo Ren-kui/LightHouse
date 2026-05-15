@@ -337,6 +337,9 @@ main.py               Game类入口 + FSM
 
 node_id/chapter/day/mood(可选:dread/tension/loss/quiet,缺省=关闭)/text(按\n\n分块)/choices(effects+conditions+multi_click+important(关键选项金色显示,#ccaa00))/auto_next/is_chapter_end/is_ending_chain(结局链标记,单选自动推进+只读模式)/text_bridges(按前置节点匹配承接桥段——详见 `docs/bridges.md` 写作原则与配置表)
 
+### 日记系统 (diary.json)
+每天4句话（理智/好奇/信任/生存），各分高/低两版，按变量阈值自动选分支。`‡关键词‡` 渲染为暗绿色(#008800)+下划线。阈值：sanity≤4(低)/curiosity≤3(低)/trust≤4(低)/survival_will≤5(低)。ND 维护文本，FD 引擎接入。
+
 ---
 
 ## 4.3 已实现
