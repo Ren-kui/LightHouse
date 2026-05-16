@@ -193,6 +193,11 @@ class MainWindow:
                                   bg=self.COLORS["status_bg"])
         self.day_label.pack(side=tk.RIGHT, padx=20, pady=6)
 
+        self._notify_label = tk.Label(self.status_bar, text="",
+                font=("Microsoft YaHei", 9, "bold"),
+                fg="#ffffff", bg=self.COLORS["status_bg"],
+                padx=6, pady=2)
+        self._notify_label.pack(side=tk.RIGHT, padx=4, pady=6)
         self._tab_hint = tk.Label(self.status_bar, text="Tab 备忘录",
                  font=("Microsoft YaHei", 7), fg="#333333",
                  bg=self.COLORS["status_bg"])
@@ -1380,35 +1385,17 @@ class MainWindow:
     # ========== 更新闪烁提示 ==========
 
     def flash_update_indicator(self):
-        """备忘录更新提示：Tab标签变成'✦ 新内容加入'，6秒后恢复"""
-        if not hasattr(self, '_tab_hint'):
+        """备忘录更新提示：'✦ 新内容加入' 亮起在 Tab 左侧，6秒后消失"""
+        if not hasattr(self, '_notify_label'):
             return
-        # 取消旧计时器，不保存通知态
         if hasattr(self, '_bubble_job') and self._bubble_job:
             self.root.after_cancel(self._bubble_job)
-            self._bubble_job = None
-        # 仅在非通知态时保存原始状态
-        if not getattr(self, '_tab_hint_orig', None):
-            self._tab_hint_orig = (
-                self._tab_hint.cget("text"),
-                self._tab_hint.cget("fg"),
-                self._tab_hint.cget("bg"),
-                self._tab_hint.cget("font"))
-        self._tab_hint.config(
-            text=" ✦ 新内容加入",
-            fg="#ffffff",
-            bg="#332200",
-            font=("Microsoft YaHei", 9, "bold"))
+        self._notify_label.config(text=" ✦ 新内容加入", bg="#332200")
         self._bubble_job = self.root.after(6000, self._hide_bubble)
 
     def _hide_bubble(self):
-        if hasattr(self, '_tab_hint_orig') and self._tab_hint_orig:
-            self._tab_hint.config(
-                text=self._tab_hint_orig[0],
-                fg=self._tab_hint_orig[1],
-                bg=self._tab_hint_orig[2],
-                font=self._tab_hint_orig[3])
-            self._tab_hint_orig = None
+        if hasattr(self, '_notify_label') and self._notify_label:
+            self._notify_label.config(text="", bg=self.COLORS["status_bg"])
         self._bubble_job = None
 
     # ========== 小游戏区域（OPT-11: 居中 + UI 框） ==========
