@@ -583,15 +583,14 @@ class MainWindow:
             for i in range(self._chunk_idx):
                 full += self._chunks[i] + "\n\n"
             full += chunk
-            # 渲染时处理 \x01...\x02 标记
+            # 渲染时处理 \x01...\x02 标记（用 re.split 保证顺序）
             import re
-            def _replace_key_skip(m):
-                self.text_area.insert(tk.END, m.group(1), "key")
-                return ""
-            full = re.sub(r'\x01(.*?)\x02', _replace_key_skip, full, flags=re.DOTALL)
-            # 剩余纯文本
-            full = full.replace("\x01", "").replace("\x02", "")
-            self.text_area.insert(tk.END, full)
+            segments = re.split('(\x01.*?\x02)', full, flags=re.DOTALL)
+            for seg in segments:
+                if seg.startswith("\x01") and seg.endswith("\x02"):
+                    self.text_area.insert(tk.END, seg[1:-1], "key")
+                else:
+                    self.text_area.insert(tk.END, seg)
             self.text_area.see(tk.END)
             self.text_area.config(state=tk.DISABLED)
         self._is_typing = False
