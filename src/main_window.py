@@ -1393,7 +1393,13 @@ class MainWindow:
             return
         if hasattr(self, '_bubble_job') and self._bubble_job:
             self.root.after_cancel(self._bubble_job)
+        # 气泡通知
         self._notify_label.config(text=" ✦ 新内容加入", bg="#332200")
+        # Tab 标签同步脉冲：亮→暗→亮→恢复（1.5秒）
+        self._tab_hint.config(fg="#ccaa44")
+        self.root.after(400, lambda: self._tab_hint.config(fg="#333333"))
+        self.root.after(800, lambda: self._tab_hint.config(fg="#ccaa44"))
+        self.root.after(1200, lambda: self._tab_hint.config(fg="#555555"))
         self._bubble_job = self.root.after(6000, self._hide_bubble)
 
     def _hide_bubble(self):
