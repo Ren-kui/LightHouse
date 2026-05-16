@@ -351,9 +351,9 @@ class Game:
         for key in ["curiosity", "sanity", "trust"]:
             desc[key] = self.state_mgr.describe(key, day=self.story.day)
         self.window.update_panel_status(desc)
-        # 日记：仅当天数变化时生成新快照，之后不变
+        # 日记：仅当天数变化时生成新快照，第一天不生成
         new_diary = False
-        if self.story.day > self._last_diary_day:
+        if self.story.day > self._last_diary_day and self.story.day >= 2:
             notes = self._get_diary_text()
             self._diary_snapshots[str(self.story.day)] = notes
             self.window.update_panel_notes(notes, day=self.story.day)

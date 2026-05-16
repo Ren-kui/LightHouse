@@ -75,7 +75,7 @@ class ItemManager:
             desc = info.get("desc", "")
             if eff_parts:
                 desc = desc + f"（{'，'.join(eff_parts)}）"
-            result.append({"name": info.get("name", item_id), "desc": desc})
+            result.append({"id": item_id, "name": info.get("name", item_id), "desc": desc})
         return result
 
     def consume(self, item_id: str):

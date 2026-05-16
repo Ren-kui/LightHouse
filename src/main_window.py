@@ -90,6 +90,7 @@ class MainWindow:
         self._cached_notes = ""
         self._cached_status = {}
         self._cached_items = []
+        self._seen_item_ids = set()   # 已查看过详情的物品 ID
 
         # 日记缓存（多天翻阅）
         self._diary_cache = {}
@@ -1085,26 +1086,42 @@ class MainWindow:
             panel_w = 240
         wrap_w = max(100, panel_w - 24)
         for item in items:
+            item_id = item.get("id", "")
             name = item.get("name", "??")
             desc = item.get("desc", "")
-            lbl = tk.Label(self._panel_items_area, text="▸ " + name,
+            is_new = item_id and item_id not in self._seen_item_ids
+            # 物品行：Frame 容纳名称+可选"（新）"
+            row = tk.Frame(self._panel_items_area, bg=self.COLORS["panel_bg"])
+            row.pack(fill=tk.X, pady=2)
+            lbl = tk.Label(row, text="▸ " + name,
                           font=("Microsoft YaHei", 10),
                           fg=self.COLORS["text"], bg=self.COLORS["panel_bg"],
-                          anchor=tk.W, wraplength=wrap_w, justify=tk.LEFT)
-            lbl.pack(fill=tk.X, pady=2)
+                          anchor=tk.W, wraplength=wrap_w - 40, justify=tk.LEFT)
+            lbl.pack(side=tk.LEFT)
+            new_tag = None
+            if is_new:
+                new_tag = tk.Label(row, text="（新）",
+                                   font=("Microsoft YaHei", 10),
+                                   fg="#cc0000", bg=self.COLORS["panel_bg"])
+                new_tag.pack(side=tk.LEFT)
             if desc:
-                def make_enter(d=desc, l=lbl, w=wrap_w, n=name):
-                    return lambda e: (
-                        l.config(wraplength=w),
-                        l.config(text="▸ " + n + "\n  " + d)
-                    )
-                def make_leave(n=name, l=lbl, w=wrap_w):
-                    return lambda e: (
-                        l.config(wraplength=w),
-                        l.config(text="▸ " + n)
-                    )
+                def make_enter(d=desc, l=lbl, w=wrap_w - 40, n=name,
+                               iid=item_id, row=row):
+                    return lambda e: self._on_item_enter(l, w, n, d, iid)
+                def make_leave(n=name, l=lbl, w=wrap_w - 40):
+                    return lambda e: self._on_item_leave(l, w, n)
                 lbl.bind("<Enter>", make_enter())
                 lbl.bind("<Leave>", make_leave())
+
+    def _on_item_enter(self, lbl, w, name, desc, item_id):
+        lbl.config(wraplength=w, text="▸ " + name + "\n  " + desc)
+        if item_id and item_id not in self._seen_item_ids:
+            self._seen_item_ids.add(item_id)
+            # 刷新面板移除"（新）"
+            self.root.after(100, lambda: self.update_panel_items(self._cached_items))
+
+    def _on_item_leave(self, lbl, w, name):
+        lbl.config(wraplength=w, text="▸ " + name)
 
     def flash_save_status(self, msg: str):
         """在状态栏短暂显示存档/读档反馈，1.5秒后恢复"""
