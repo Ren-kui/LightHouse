@@ -47,6 +47,9 @@
 | B029 | chapter_02.json JSON 解析失败——`ch02_free_mg1_done` 节点文本内嵌 ASCII `"`（`"没有任务"`）破坏 JSON 结构，导致第 2 章加载失败。改为中文引号修复 | P0 | FD | FD | 2026-05-15 | 2026-05-15 |
 | B030 | 物品面板悬停文字溢出——`update_panel_items` 中 `Label` 未设 `wraplength`，物品描述（最长 57 字）超出面板宽度被裁切。加动态 `wraplength` + `justify=LEFT` + `fill=tk.X` 修复 | P1 | FD | FD | 2026-05-15 | 2026-05-15 |
 | B031 | 日记重点文字全红——diary.json 中 low/high 阈值共用一个 `‡` 标记，`_get_diary_text()` 无法区分，改 marked 标签颜色后高低阈值全变红。high 文本改用 `†` 标记 + 渲染端分 `marked`(红)/`marked_high`(绿) 双 tag 修复 | P1 | 老板 | FD | 2026-05-15 | 2026-05-15 |
+| B032 | `[key]` 标记文字快速点击后消失——两重原因：① `_skip_typing` 正则用 raw string `r'\x01'` 不解析控制符，匹配的字面字符串；② `re.sub` 回调中用 `tk.END` 插入 key 文本，所有 key 文本挤在最前面、后追加普通文本，顺序全乱。改用 `re.split` + 交替插入修复 | P1 | FD | FD | 2026-05-16 | 2026-05-16 |
+| B033 | 结局画面无法返回标题界面——`show_ending_screen` 后 `_chunks` 保留旧数据，`_on_text_advance` 发现 `_chunks` 非空但 `_chunk_idx` 已达末尾，直接 return 不触发回调。加 `_ending_screen` 标志+清空 `_chunks` 修复 | P0 | 老板 | FD | 2026-05-15 | 2026-05-15 |
+| B034 | 黑暗小游戏死亡结局未走结局画面——`ch04_darkness_death` 和 `ch05_mg5_death` 的 `auto_next` 为 null，未路由到 `ch06_ending_death`（`is_ending_chain`），导致死亡后卡在黑屏。两处 `auto_next` 改为 `"ch06_ending_death"` 修复 | P0 | 老板 | FD | 2026-05-15 | 2026-05-15 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |

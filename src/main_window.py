@@ -668,11 +668,11 @@ class MainWindow:
         return "break"
 
     def _remove_prompt(self):
-        """移除翻页提示"""
+        """移除翻页提示（含前导空行）"""
         self._cancel_prompt_blink()
         self.text_area.config(state=tk.NORMAL)
-        # 删除最后两行（空行+提示）
-        last_line = self.text_area.index("end-1c linestart")
+        # 删除空行+提示行：从倒数第二行行首到末尾
+        last_line = self.text_area.index("end-2l linestart")
         self.text_area.delete(last_line, tk.END)
         self.text_area.config(state=tk.DISABLED)
 
