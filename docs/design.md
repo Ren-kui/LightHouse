@@ -355,15 +355,25 @@ data/items.json        物品定义（id/name/desc/carry_effects/obtain/destroy_
 
 ```
 main.py               Game类入口 + FSM
-  main_window.py      Undertale主窗口 (含标题/文本/选项/面板/存档/GM/小游戏覆盖层)
-  story_engine.py     JSON->分支+未完待工+条件判定
+  main_window.py      Undertale主窗口 (含标题/文本/选项/面板/存档/GM/小游戏覆盖层/结局画面)
+  story_engine.py     JSON→分支+条件判定+物品判定
   state_manager.py    5变量+描述+条件
-  save_manager.py     3手动1自动存档
-  sound_manager.py    纯代码合成音效(SD) — M4空壳API
-  minigame_base.py    MG1/MG2/MG3 小游戏基类
-  [设计预留] status_panel.py → 已合并至 main_window.py
-  [设计预留] effects.py → 已合并至 main_window.py (逐字/抖动)
-  [设计预留] darkness_overlay.py → 待重建 (V1/V2)
+  save_manager.py     4手动1自动存档
+  sound_manager.py    纯代码合成音效(SD)
+  item_manager.py     物品管理：7件物品CRUD+carry_effects+结局穿透
+  minigame_base.py    MG1/MG2/MG3/MG4A/MG4B5 小游戏
+  darkness_overlay.py 黑暗收缩叠加层(V1/V2)
+```
+
+### 数据文件
+
+```
+data/
+  chapter_01~06.json   剧情数据（ND 维护）
+  diary.json           日记文本（ND 维护）
+  diary_fragments.json 日记残页原文（ND 维护）
+  items.json           物品定义（GD 定义物品+结局关联，ND 写描述文案）
+  markup_registry.json 标记注册表（GD 维护）
 ```
 
 ---

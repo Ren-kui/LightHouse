@@ -209,5 +209,6 @@
 | `启动游戏.bat` | 普通模式启动（`python src\main.py %*`） |
 | `启动游戏_GM模式.bat` | GM 调试模式启动（`python src\main.py --gm`） |
 | `tests\启动测试.bat` | 运行全量脚本化测试（`python tests\run_all.py`） |
+| `data\items.json` | 物品定义（7 件），GD 定义+ND 文案，FD 的 ItemManager 加载 |
 | GitHub 远程仓库 | `https://github.com/Ren-kui/LightHouse` — `git push origin master:main` |
 
