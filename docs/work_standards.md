@@ -84,13 +84,14 @@
 | **依据** | MG4A 崩溃链：`_check_hits → _complete → callback → destroy(canvas=None)` 在 `_loop` 调用栈内同步执行，后续 `self.canvas.after(...)` 访问 None |
 
 
-## W008 · Tkinter 尺寸防卫（MG4B 全黑复盘）
+## W008 · Tkinter 布局防卫（MG4B 全黑 + 气泡不显示 复盘）
 
 | 项 | 内容 |
 |---|------|
-| **规则** | `winfo_width()` / `winfo_height()` 在 widget 首次 `place()` 后、Tkinter 主循环渲染前返回 `1`（非 falsy），不可用 `or DEFAULT` 进行尺寸兜底。所有 Canvas/widget 的尺寸获取必须使用 `if w < 50: w = DEFAULT` 阈值判断。 |
-| **自检** | FD 每次新建 Canvas 或覆盖层 widget 时：获取尺寸用的是 `< 50` 阈值而非 `or default` |
-| **依据** | MG4B 全黑 — DarknessOverlay Canvas 在 `minigame_area` 首次 `place()` 后立即 `start()`，父容器尚未渲染，`winfo_width()=1` → `or 860` 未生效，Canvas 1×1 px |
+| **规则 ①** | `winfo_width()` / `winfo_height()` 在 widget 首次 `place()` 后、Tkinter 主循环渲染前返回 `1`（非 falsy），不可用 `or DEFAULT` 进行尺寸兜底。所有 Canvas/widget 的尺寸获取必须使用 `if w < 50: w = DEFAULT` 阈值判断。 |
+| **规则 ②** | `place(in_=pack_widget)` 跨几何管理器定位不可靠——`pack()` 管理的 widget 没有稳定的像素坐标暴露给 `place()`。所有需相对定位的 widget 应置于同一父容器内，使用同一种几何管理器（统一 pack 或统一 place）。 |
+| **自检** | FD 每次新建 Canvas 或覆盖层 widget 时：① 获取尺寸用的是 `< 50` 阈值而非 `or default`；② 定位逻辑不使用 `place(in_=pack_widget)` 跨管理器引用 |
+| **依据** | MG4B 全黑 — `winfo_width()=1` → Canvas 1×1 px。气泡不显示 — `place(in_=self._tab_hint)` 在 pack 布局下坐标不可靠，气泡从未出现在可视区域 |
 
 
 ## W009 · 分支对称性（结局循环复盘）
