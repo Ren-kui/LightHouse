@@ -110,6 +110,18 @@
 | **依据** | B025 — diary.json 内层引号破坏 JSON → 静默失败日记不显示。B026 — `_diary_cache` 绑定到面板 widget 生命周期 → `cmd_gm_load_chapter` 面板未打开时 crash。B027 — 面板关闭后 `_render_diary` 访问已销毁 widget → TclError。B028 — `after_cancel(getattr(0))` 传 0 → ValueError。四 bug 根因相同：数据/状态/控件三层生命周期未隔离。 |
 
 
+## W011 · 物品效果穿透
+
+| 项 | 内容 |
+|---|------|
+| **规则** | 物品 `carry_effects` 必须穿透到游戏逻辑层——结局判定(`check_ending`)、GM 面板变量显示、选项条件判定——不得仅停留在面板展示文字。任何修改变量值的物品效果必须在所有读取该变量值的代码路径中可见。 |
+| **自检** | FD 每次新增物品携带效果后：① 确认 `check_ending()` 的有效值计算包含了该效果；② 确认 GM 面板（Ctrl+Shift+G）变量显示带物品修饰（绿色 +N / 红色 -N）；③ 确认该效果能真实改变结局走向（GM 预设测试）。 |
+| **依据** | M7 物品系统上线后，`key` 的 survival_will+2 和 `evil_wood_carving` 的 sanity-2 仅显示在面板文字中，`check_ending()` 读 StateManager 原始值未包含物品效果，导致物品无法影响结局判定。修复：`check_ending()` 计算有效值 = 原始值 + `item_mgr.get_carry_effects()`。 |
+
+---
+> **执行优先级**：W001（最高） > W002（次高） > W003 = W004 = W005 = W006 = W007 = W008 = W009 = W010 = W011（平等）
+
+
 > **关联文档**：`docs/decisions.md` / `docs/design.md` / `docs/progress.md` / `docs/test_report.md` / `docs/agents.md`（含会话规则）/ `docs/fd_selfcheck.md`（含交互矩阵）/ `docs/nd_selfcheck.md`
 
 ---

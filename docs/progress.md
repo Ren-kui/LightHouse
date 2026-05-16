@@ -16,7 +16,7 @@
 里程碑 4 · 存档+面板         ████████████████████ 100% ✅
 里程碑 5 · 第2-6章+小游戏    ████████████████████ 100% ✅
 里程碑 6 · 打磨+exe打包      ████████████████████ 100% ✅
-里程碑 7 · 物品系统+全量优化  ░░░░░░░░░░░░░░░░░░░░   0%
+里程碑 7 · 物品系统+全量优化  ███████████████░░░░░  75%
 ```
 
 ---
@@ -145,57 +145,58 @@
 
 | 任务 | 负责人 | 状态 |
 |------|--------|------|
-| 新建 `src/item_manager.py`（ItemManager 类） | FD | 待 |
-| 新建 `data/items.json`（7 件物品定义） | GD/FD | 待 |
-| 修改 `src/state_manager.py`（trust 5→4, survival_will 7→6） | FD | 待 |
-| 修改 `src/story_engine.py`（check_ending 物品判定, set_items/remove_items） | FD | 待 |
-| 修改 `src/main.py`（ItemManager 集成, 钥匙开局注入） | FD | 待 |
+| 新建 `src/item_manager.py`（ItemManager 类） | FD | ✅ |
+| 新建 `data/items.json`（7 件物品定义） | GD/FD | ✅ |
+| 修改 `src/state_manager.py`（trust 5→4, survival_will 7→6） | FD | ✅ |
+| 修改 `src/story_engine.py`（check_ending 物品判定, set_items/remove_items, 有效值穿透） | FD | ✅ |
+| 修改 `src/main.py`（ItemManager 集成, 钥匙开局注入, carry_effects 传递） | FD | ✅ |
 
 ### P0 · MG3 小游戏
 
 | 任务 | 负责人 | 状态 |
 |------|--------|------|
-| MG3 接入 ch03 JSON（成功/失败/逃避三路径） | FD | 待 |
-| MG3 节点文本（三路径） | ND | 待 |
+| MG3 接入 ch03 JSON（成功/失败/逃避三路径） | FD | ✅ |
+| MG3 节点文本（三路径） | FD（代 ND） | ✅ |
 
 ### P1 · 物品叙事
 
 | 任务 | 负责人 | 状态 |
 |------|--------|------|
-| ch02 锡兵获取节点（探索墙缝） | ND/FD | 待 |
-| ch03 八音盒获取 + 课本偷取（loyalty≤2） | ND/FD | 待 |
-| ch04 D8 梦境醒三选一（warm_marble/evil_wood_carving/直接走） | ND/FD | 待 |
-| ch04 帮张海生节点（D7/D8） | ND/FD | 待 |
-| 闲逛任务（ch02/ch03 MG1/MG2 复刻, 难度上调） | FD | 待 |
-| 钢笔获取叙事（全清闲逛后插入） | ND/FD | 待 |
+| ch02 锡兵获取节点（探索墙缝） | FD（代 ND） | ✅ |
+| ch03 八音盒获取（三选一，含不祥桥段）+ 课本偷取（loyalty≤2） | FD（代 ND） | ✅ |
+| ch04 D8 梦境醒三选一（warm_marble/evil_wood_carving/直接走） | FD（代 ND） | ✅ |
+| ch04 帮张海生节点（D7/D8 双路径） | FD（代 ND） | ✅ |
+| 闲逛任务（ch02/ch03 MG1/MG2 复刻, 难度上调） | FD | ✅ |
+| 钢笔获取叙事（ch03_free_mg2_done 脚边黑色筒状物） | FD（代 ND） | ✅ |
 
 ### P2 · 规则调整
 
 | 任务 | 负责人 | 状态 |
 |------|--------|------|
-| 日记时间逻辑（只显示 day-1, D14 结局末尾静态展示） | FD | 待 |
+| 日记时间逻辑（只显示 day-1, D14 结局末尾静态展示） | FD | ✅ |
 
 ### P3 · UI 润色
 
 | 任务 | 负责人 | 状态 |
 |------|--------|------|
-| 结局名称展示画面（大字+描述+返回） | FD/UI | 待 |
-| 日记低阈值颜色（#2d5a2d → #cc0000） | FD | 待 |
-| 存档 3+1 → 4+1（自动位独立, 上下排列） | FD/UI | 待 |
-| 标题界面"结局收集"功能（8格+二级详情） | FD/UI | 待 |
-| 物品面板升级（动态渲染+effects提示） | FD/UI | 待 |
+| 结局名称展示画面（大字+描述+返回） | FD/UI | ✅ |
+| 日记低阈值颜色分级（低=红 #cc0000, 高=绿 #008800） | FD | ✅ |
+| 存档 3+1 → 4+1（自动位独立, 上下排列） | FD/UI | ✅ |
+| 标题界面"结局收集"功能（8格+二级详情） | FD/UI | ❌ 未实现 |
+| 物品面板升级（动态渲染+wraplength+effects提示） | FD/UI | ✅ |
+| 物品效果穿透（carry_effects → check_ending/GM面板） | FD | ✅ |
 
 ### QA · 全量回归
 
 | 任务 | 负责人 | 状态 |
 |------|--------|------|
-| 全量测试 + validate_data | QA | 待 |
+| 全量测试 + validate_data | QA | ✅ 138/139 PASS |
 | 物品 7 件全链路 + 结局物品联动 | QA | 待 |
 | MG3 三路径 + 闲逛 + 存档 4+1 | QA | 待 |
 
 ---
 
-> **当前状态**：M0~M6 ✅ 全部完成。M7 🔄 0% 待启动（10 项优化，见 D046~D048）。136/137 PASS（1 FAIL 为 SD 预存）。分发包 `release/Lighthouse/` 就绪。
+> **当前状态**：M0~M6 ✅。M7 🔄 75%（P0~P2 完成，P3 缺结局收集，QA 待物理验证）。138/139 PASS（1 FAIL 为 SD 预存）。
 
 ---
 

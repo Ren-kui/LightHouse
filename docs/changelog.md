@@ -5,10 +5,30 @@
 
 | 日期 | 文件 | 改动类型 | 描述 |
 |------|------|----------|------|
-| 2026-05-15 | tests/test_ending_reachability.py | 新建 | M6-1 全结局可达性测试（40 用例，8 结局全判定+优先级验证） |
-| 2026-05-15 | src/main.py | 修改 | M6-3 exe 打包路径适配：PyInstaller frozen 模式取 sys.executable 所在目录 |
-| 2026-05-15 | release/Lighthouse/ | 新建 | 分发包目录：Lighthouse.exe 10.1MB + data/ + 启动.bat |
-| 2026-05-15 | docs/progress.md, docs/agents.md | 更新 | M6 全部完成，M0~M6 100%，状态行同步 |
+| 2026-05-15 | `src/item_manager.py` | 新建 | ItemManager 类（7 物品 CRUD + carry_effects） |
+| 2026-05-15 | `data/items.json` | 新建 | 7 件物品定义（key/tin_soldier/music_box/warm_marble/evil_wood_carving/pen/zhang_textbook） |
+| 2026-05-15 | `src/state_manager.py` | 修改 | trust 5→4, survival_will 7→6 |
+| 2026-05-15 | `src/story_engine.py` | 修改 | check_ending 有效值穿透（+carry_effects）；set_items/remove_items/item_condition |
+| 2026-05-15 | `src/main.py` | 修改 | ItemManager 集成、钥匙开局、有效值穿透、结局画面触发、存档 items、4+1 存档位 |
+| 2026-05-15 | `src/main_window.py` | 修改 | 物品面板 wraplength、日记双标记红/绿、存档 4+1 UI、结局名称画面、GM 面板物品效果显示 |
+| 2026-05-15 | `src/save_manager.py` | 修改 | items 存档字段 |
+| 2026-05-15 | `data/chapter_02.json` | 修改 | +ch02_tin_soldier 节点; +ch02_free_mg1_done 闲逛 MG1 |
+| 2026-05-15 | `data/chapter_03.json` | 修改 | MG3 接入; +ch03_platform_fail; +ch03_take_music_box; +ch03_steal_textbook; +ch03_free_mg2_done 闲逛 MG2+钢笔; 八音盒改为三选一获取 |
+| 2026-05-15 | `data/chapter_04.json` | 修改 | +ch04_d7_platform_help/ch04_platform_help_together; +ch04_d8_wake 梦境醒三选一 |
+| 2026-05-15 | `tests/test_ending_reachability.py` | 修改 | 适配物品系统（G/B/D 结局加物品条件） |
+| 2026-05-15 | `tests/test_state_manager.py` | 修改 | 适配 trust/survival_will 初始值变更 |
+| 2026-05-15 | `tests/test_save_integration.py` | 修改 | 适配 items 存档字段 + 初始值变更 |
+| 2026-05-15 | `docs/text_markup_spec.md` | 修改 | +§5 JSON 文本引号规范; +§6 标记歧义消除 |
+| 2026-05-15 | `docs/work_standards.md` | 修改 | +W002-4 面板文本不溢出; +W011 物品效果穿透 |
+| 2026-05-15 | `docs/bug_list.md` | 修改 | +B029 JSON 内嵌引号; +B030 物品溢出; +B031 日记全红 |
+| 2026-05-15 | `docs/decisions.md` | 修改 | +D046 M7 启动; +D047 结局物品矩阵; +D048 ItemManager 架构 |
+| 2026-05-15 | `docs/design.md` | 修改 | §2.3 变量初始值更新; §2.4 MG3 规格; §2.5 结局物品矩阵; §2.6 存档 4+1; §2.7 物品系统 |
+| 2026-05-15 | `docs/progress.md` | 修改 | M7 看板（75%） |
+| 2026-05-15 | `docs/agents.md` | 修改 | 状态行同步 |
+| 2026-05-15 | `tests/test_ending_reachability.py` | 新建 | M6-1 全结局可达性测试（40 用例，8 结局全判定+优先级验证） |
+| 2026-05-15 | `src/main.py` | 修改 | M6-3 exe 打包路径适配：PyInstaller frozen 模式取 sys.executable 所在目录 |
+| 2026-05-15 | `release/Lighthouse/` | 新建 | 分发包目录：Lighthouse.exe 10.1MB + data/ + 启动.bat |
+| 2026-05-15 | `docs/progress.md, docs/agents.md` | 更新 | M6 全部完成，M0~M6 100%，状态行同步 |
 | 2026-05-08 | 全部文档 | 新建 | 项目初始化，创建记忆文档系统 |
 | 2026-05-08 | docs/decisions.md, docs/design.md, docs/progress.md | 更新 | 同步黑暗收缩死亡场景设计（D015/D016），追加设计文档第十一章 |
 | 2026-05-08 | src/state_manager.py | 新建 | 变量管理器，含5变量显隐分离、边界保护、条件判定、文字描述转换 |

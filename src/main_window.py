@@ -1211,7 +1211,8 @@ class MainWindow:
 
     def refresh_gm_panel(self, nodes_ordered: list, current_node: str, variables: dict,
                           presets: list, chapters_loaded: list, all_chapters: list,
-                          node_sounds: dict = None, active_sound: str = None):
+                          node_sounds: dict = None, active_sound: str = None,
+                          carry_effects: dict = None):
         """刷新 GM 面板数据。
         nodes_ordered: [(chapter, node_id), ...] 按 JSON 原始顺序
         chapters_loaded: 已加载的章节号列表
@@ -1307,18 +1308,26 @@ class MainWindow:
             c.destroy()
         var_names = [("curiosity", "好奇心"), ("sanity", "理智"), ("trust", "信任"),
                      ("survival_will", "生存意愿"), ("loyalty", "忠诚")]
+        carry = carry_effects or {}
         for key, label in var_names:
             row = tk.Frame(self._gm_var_frame, bg=self.COLORS["panel_bg"])
             row.pack(fill=tk.X, pady=1)
             tk.Label(row, text="{}".format(label), font=("Microsoft YaHei", 9),
                      fg="#999999", bg=self.COLORS["panel_bg"], width=8, anchor=tk.W).pack(side=tk.LEFT)
-            val = variables.get(key, 0)
             btn_minus = tk.Label(row, text="−", font=("Microsoft YaHei", 10, "bold"),
                                  fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"], cursor="hand2")
             btn_minus.pack(side=tk.LEFT, padx=2)
             btn_minus.bind("<Button-1>", lambda e, k=key: self.on_gm_set_var(k, -1))
-            val_lbl = tk.Label(row, text=str(val), font=("Microsoft YaHei", 10, "bold"),
-                               fg=self.COLORS["text"], bg=self.COLORS["panel_bg"], width=3)
+            val = variables.get(key, 0)
+            eff = carry.get(key, 0)
+            if eff != 0:
+                eff_color = "#00cc00" if eff > 0 else "#cc0000"
+                display = "{}{:+d}".format(val, eff)
+                val_lbl = tk.Label(row, text=display, font=("Microsoft YaHei", 10, "bold"),
+                                    fg=eff_color, bg=self.COLORS["panel_bg"], width=6)
+            else:
+                val_lbl = tk.Label(row, text=str(val), font=("Microsoft YaHei", 10, "bold"),
+                                    fg=self.COLORS["text"], bg=self.COLORS["panel_bg"], width=3)
             val_lbl.pack(side=tk.LEFT)
             btn_plus = tk.Label(row, text="+", font=("Microsoft YaHei", 10, "bold"),
                                 fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"], cursor="hand2")

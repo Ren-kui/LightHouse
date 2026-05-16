@@ -121,11 +121,19 @@ class StoryEngine:
                     and self.item_mgr.has("warm_marble")):
                 return "G"
 
-        c = self.state.get("curiosity")
-        s = self.state.get("sanity")
-        t = self.state.get("trust")
-        sw = self.state.get("survival_will")
-        l = self.state.get("loyalty")
+        # 有效值 = 原始变量 + 物品携带效果
+        effects = self.item_mgr.get_carry_effects() if self.item_mgr else {}
+        c = self.state.get("curiosity") + effects.get("curiosity", 0)
+        s = self.state.get("sanity") + effects.get("sanity", 0)
+        t = self.state.get("trust") + effects.get("trust", 0)
+        sw = self.state.get("survival_will") + effects.get("survival_will", 0)
+        l = self.state.get("loyalty") + effects.get("loyalty", 0)
+        # 钳制到合法范围
+        c = max(0, min(10, c))
+        s = max(0, min(10, s))
+        t = max(0, min(10, t))
+        sw = max(0, min(10, sw))
+        l = max(0, min(5, l))
 
         # 优先级 3: F 被背叛
         if c >= 7 and s <= 3 and t <= 3 and l <= 2:

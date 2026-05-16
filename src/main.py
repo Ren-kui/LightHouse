@@ -475,15 +475,16 @@ class Game:
                 ordered.append((node.get("chapter", 0), nid))
                 node_sounds[nid] = self._analyze_node_sounds(node)
         variables = self.state_mgr.get_all()
+        carry = self.item_mgr.get_carry_effects() if self.item_mgr else {}
         # 列出所有已加载的章节号
         chapters_loaded = sorted(set(c for c, _ in ordered))
         all_chapters = [1, 2, 3, 4, 5, 6]  # M5 全章节可用
         # 当前播放的音效状态
         active_sound = self.sound_mgr._active
         self.window.refresh_gm_panel(ordered, self.story.current_node or "",
-                                      variables, self.GM_PRESETS,
-                                      chapters_loaded, all_chapters,
-                                      node_sounds, active_sound)
+                                       variables, self.GM_PRESETS,
+                                       chapters_loaded, all_chapters,
+                                       node_sounds, active_sound, carry)
 
     def _analyze_node_sounds(self, node: dict) -> list:
         """M5 GM: 分析节点的音效触发列表，返回 [音效名, ...]。
