@@ -206,6 +206,7 @@ class StoryEngine:
                 "failure_effects": choice.get("failure_effects"),
                 "success_flags": choice.get("success_flags"),
                 "failure_flags": choice.get("failure_flags"),
+                "mg_params": choice.get("mg_params"),
             }
 
         # 普通选择：执行 effects + set_flags + set_items/remove_items + 跳转节点

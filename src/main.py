@@ -577,7 +577,8 @@ class Game:
         if mg_cls is None:
             self._on_minigame_complete(False)
             return
-        self._mg_instance = mg_cls(self.window.minigame_area)
+        mg_params = (self._mg_info or {}).get("mg_params") or {}
+        self._mg_instance = mg_cls(self.window.minigame_area, **mg_params)
         self._mg_instance.set_complete_callback(self._on_minigame_complete)
         self.window.show_minigame()
         self._mg_instance.start()

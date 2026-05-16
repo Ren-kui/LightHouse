@@ -79,15 +79,17 @@ class MG1_PowerConnect(MinigameBase):
     LIGHT_DURATION = 1500   # 亮灯持续 ms
     DARK_DURATION = 2500    # 灭灯持续 ms
 
-    def __init__(self, parent: tk.Frame):
+    def __init__(self, parent: tk.Frame, pre_connect: int = 0):
         super().__init__(parent)
 
+        self.pre_connect = pre_connect  # 预完成连接数（教学用）
         self._left_terminals = []   # 左侧端子
         self._right_terminals = []  # 右侧端子（乱序）
         self._relays = []           # 中继点
         self._selected_left = None  # 当前选中的左端子 index
         self._selected_relay = None # 当前选中的中继点 index
-        self._connections = []      # 连线列表
+        self._connections = []      # 连线列表（含半程线）
+        self._half_lines = []       # 半程连线（左→中继，未完成）
         self._matched_left = set()
         self._matched_right = set()
         self._matched_relays = set()
@@ -265,6 +267,49 @@ class MG1_PowerConnect(MinigameBase):
         self.canvas.create_text(right_x, start_y - 22, text="端子",
                                 fill="#444444", font=("Microsoft YaHei", 7))
 
+        # 预连接教学：首次 MG1 时预先完成一对连线，向玩家展示规则
+        for n in range(min(self.pre_connect, len(self.PAIRS))):
+            self._pre_connect_pair(n)
+
+    def _pre_connect_pair(self, n):
+        target_label, color = self.PAIRS[n]
+        left_idx = None
+        relay_idx = None
+        right_idx = None
+        for i, (lbl, clr, _, _, _, _, _, _, _, _) in enumerate(self._left_terminals):
+            if lbl == target_label and clr == color:
+                left_idx = i; break
+        for i, (clr, _, _, _) in enumerate(self._relays):
+            if clr == color:
+                relay_idx = i; break
+        for i, (rlbl, rclr, _, _, _, _, _, _, _, _) in enumerate(self._right_terminals):
+            if rlbl == target_label and rclr == color:
+                right_idx = i; break
+        if left_idx is not None and relay_idx is not None and right_idx is not None:
+            self._matched_left.add(left_idx)
+            self._matched_relays.add(relay_idx)
+            self._matched_right.add(right_idx)
+            lx = self._left_terminals[left_idx][2] + 36
+            ly = self._left_terminals[left_idx][3]
+            rx = self._relays[relay_idx][1]
+            ry = self._relays[relay_idx][2]
+            ln1 = self.canvas.create_line(lx, ly, rx, ry, fill=color, width=2)
+            ln2 = self.canvas.create_line(rx, ry,
+                                          self._right_terminals[right_idx][2] - 36,
+                                          self._right_terminals[right_idx][3],
+                                          fill=color, width=2)
+            self._connections.append(ln1)
+            self._connections.append(ln2)
+            lrect = self._left_terminals[left_idx][4]
+            rrect = self._right_terminals[right_idx][4]
+            r_relay = self._relays[relay_idx][3]
+            self.canvas.itemconfig(lrect, fill="#002200", outline="#00aa00")
+            self.canvas.itemconfig(r_relay, fill="#002200", outline="#00aa00")
+            self.canvas.itemconfig(rrect, fill="#002200", outline="#00aa00")
+            if n == 0:
+                self.canvas.itemconfig(self._hint_id,
+                    text="左端子 → 中继点 → 右端子（同色配对）")
+
     # ===== 点击交互 =====
 
     def _on_click(self, event):
@@ -285,6 +330,13 @@ class MG1_PowerConnect(MinigameBase):
                     if left_color == color:
                         self._selected_relay = i
                         self._highlight_relay(i)
+                        # 画半程连线：左端子 → 中继点
+                        self._clear_half_lines()
+                        lx2 = self._left_terminals[self._selected_left][8]  # x2
+                        ly = self._left_terminals[self._selected_left][3]
+                        half = self.canvas.create_line(
+                            lx2, ly, rx, ry, fill=left_color, width=2, dash=(4, 4))
+                        self._half_lines.append(half)
                         self.canvas.itemconfig(self._hint_id, text="中继点正确！　点右侧端子...")
                         return
                     else:
@@ -304,6 +356,7 @@ class MG1_PowerConnect(MinigameBase):
                     left_label = self._left_terminals[self._selected_left][0]
                     relay_color = self._relays[self._selected_relay][0]
                     if left_label == rlabel and relay_color == rcolor:
+                        self._clear_half_lines()
                         self._try_connect(self._selected_left, self._selected_relay, i)
                     else:
                         self._flash_wrong_pair()
@@ -350,6 +403,7 @@ class MG1_PowerConnect(MinigameBase):
             self.canvas.itemconfig(rid, fill="#1a1a00", outline=self._brighten(color))
 
     def _clear_all_highlights(self):
+        self._clear_half_lines()
         for _, color, _, _, lid, _, _, _, _, _ in self._left_terminals:
             self.canvas.itemconfig(lid, fill="#111111", outline=color)
         # 重置全部中继点（灭灯时保持暗色）
@@ -358,6 +412,12 @@ class MG1_PowerConnect(MinigameBase):
                 self.canvas.itemconfig(rid, fill="#0a0a0a", outline="#1a1a1a", width=4)
             else:
                 self.canvas.itemconfig(rid, fill="#111111", outline=color, width=4)
+
+    def _clear_half_lines(self):
+        for lid in self._half_lines:
+            if self.canvas and self.canvas.winfo_exists():
+                self.canvas.delete(lid)
+        self._half_lines.clear()
 
     def _brighten(self, hex_color):
         r = min(255, int(hex_color[1:3], 16) + 60)

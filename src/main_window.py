@@ -75,6 +75,7 @@ class MainWindow:
         self._chunks = []          # 文本块列表
         self._chunk_idx = 0        # 当前块索引
         self._is_typing = False    # 正在逐字打印
+        self._in_key_mode = False   # 正在打印 [key] 标记内的文字
         self._typewriter_job = None  # after 定时器 ID
         self._typewrite_delay = 30   # 逐字延迟（ms），由 node mood 动态调整
         self._pause_after = {}     # 块索引 -> 暂停秒数
@@ -168,6 +169,8 @@ class MainWindow:
             font=self.FONT_SMALL)
         self.text_area.tag_configure("shake",
             foreground=self.COLORS["emphasis"])  # 4G: 红色抖动 tag
+        self.text_area.tag_configure("key",
+            foreground="#ccaa44")  # M7: 关键句淡黄色标记
 
     def _build_status_bar(self):
         """底部：存档 / 读档 / 天数 / Tab提示"""
@@ -422,6 +425,9 @@ class MainWindow:
             return "[PAUSE_{}]".format(m.group(1))
         full_text = re.sub(r'\[pause\s+([\d.]+)\]', _extract_pause, full_text, flags=re.IGNORECASE)
 
+        # 预处理 [key]...[/key] 标记：替换为 \x01...\x02 控制符，打字时渲染为淡黄色
+        full_text = re.sub(r'\[key\](.*?)\[/key\]', lambda m: "\x01" + m.group(1) + "\x02", full_text, flags=re.DOTALL)
+
         # 分块
         chunks = re.split(r'\n\s*\n', full_text.strip())
         chunks = [c.strip() for c in chunks if c.strip()]
@@ -467,6 +473,7 @@ class MainWindow:
 
     def _typewrite_current_chunk(self):
         """逐字打印当前块。若块含 [SHAKE_N] 占位则渲染红色抖动文字。"""
+        self._in_key_mode = False  # 每个新块重置 key 模式
         if self._chunk_idx >= len(self._chunks):
             self._on_all_chunks_done()
             return
@@ -550,7 +557,14 @@ class MainWindow:
             return
 
         char = chunk[pos]
-        self._append(char)
+        if char == "\x01":
+            self._in_key_mode = True
+        elif char == "\x02":
+            self._in_key_mode = False
+        elif self._in_key_mode:
+            self._append_tagged(char, "key")
+        else:
+            self._append(char)
         self.text_area.see(tk.END)
         self._typewriter_job = self.root.after(
             self._typewrite_delay, lambda: self._typewrite_char(pos + 1))
@@ -563,13 +577,20 @@ class MainWindow:
         if self._chunk_idx < len(self._chunks):
             chunk = self._chunks[self._chunk_idx]
             # 从末尾删除正在打印的内容（整块剩余部分由完整重替换）
-            # 简化：清空重建到当前块为止 + 当前块完整
             self.text_area.config(state=tk.NORMAL)
             self.text_area.delete("1.0", tk.END)
             full = ""
             for i in range(self._chunk_idx):
                 full += self._chunks[i] + "\n\n"
             full += chunk
+            # 渲染时处理 \x01...\x02 标记
+            import re
+            def _replace_key_skip(m):
+                self.text_area.insert(tk.END, m.group(1), "key")
+                return ""
+            full = re.sub(r'\x01(.*?)\x02', _replace_key_skip, full, flags=re.DOTALL)
+            # 剩余纯文本
+            full = full.replace("\x01", "").replace("\x02", "")
             self.text_area.insert(tk.END, full)
             self.text_area.see(tk.END)
             self.text_area.config(state=tk.DISABLED)
@@ -624,6 +645,12 @@ class MainWindow:
     def _on_text_advance(self, event=None):
         """空格/回车/点击：打字中→跳过；暂停中→跳过等待；等待中→翻页（面板打开时暂停文本推进）"""
         if self._panel_open:
+            return "break"
+        # 结局画面模式：翻页触发 on_text_complete 回调
+        if getattr(self, '_ending_screen', False):
+            self._ending_screen = False
+            if self.on_text_complete:
+                self.on_text_complete()
             return "break"
         if self._is_pausing:
             if self._pause_job:
@@ -1083,6 +1110,8 @@ class MainWindow:
         """结局画面：结局名称（大字 #cc0000）+ 描述（小字）+ 可选 D14 日记"""
         self.clear_choices()
         self._is_typewriting = False
+        self._chunks = []          # 清空块队列，避免 _on_text_advance 卡在旧数据
+        self._ending_screen = True  # 标记结局画面模式，翻页时回调 on_text_complete
         self.text_area.config(state=tk.NORMAL)
         self.text_area.delete("1.0", tk.END)
         # 结局名称
