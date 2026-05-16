@@ -61,8 +61,8 @@ class TestSaveIntegration(unittest.TestCase):
         self.assertEqual(data["flags"], flags)
         self.assertEqual(data["variables"]["curiosity"], 5)
         self.assertEqual(data["variables"]["sanity"], 7)   # 10-3
-        self.assertEqual(data["variables"]["trust"], 7)     # 5+2
-        self.assertEqual(data["variables"]["survival_will"], 6)  # 7-1
+        self.assertEqual(data["variables"]["trust"], 6)     # 4+2
+        self.assertEqual(data["variables"]["survival_will"], 5)  # 6-1
         self.assertEqual(data["variables"]["loyalty"], 4)   # 3+1
         self.assertEqual(data["sound_state"], sound)
         self.assertIn("save_time", data)
@@ -99,7 +99,7 @@ class TestSaveIntegration(unittest.TestCase):
             raw = json.load(f)
 
         required = ["save_time", "current_node", "chapter", "day",
-                    "variables", "history", "flags", "sound_state"]
+                    "variables", "history", "flags", "sound_state", "items"]
         for key in required:
             self.assertIn(key, raw,
                           "存档必须包含键 '{}'，当前键: {}".format(key, list(raw.keys())))

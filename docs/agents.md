@@ -6,7 +6,7 @@
 
 ---
 
-> **当前状态**：里程碑 M0~M6 ✅ 全部完成。136/137 测试 PASS（1 FAIL 为 SD 预存）。音效全局暂停。分发包 `release/Lighthouse/` 就绪（Lighthouse.exe 10.1MB）。详见 `docs/progress.md`。
+> **当前状态**：M0~M6 ✅ 全部完成。M7 🔄 启动中（物品系统+全量优化 10 项，D046~D048）。详见 `docs/progress.md`。
 
 ---
 

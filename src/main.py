@@ -19,6 +19,7 @@ import sys, os, json
 from state_manager import StateManager
 from save_manager import SaveManager
 from story_engine import StoryEngine
+from item_manager import ItemManager
 from main_window import MainWindow
 from sound_manager import SoundManager
 from minigame_base import MG1_PowerConnect, MG2_SolarReaction, MG3_PlatformBalance, MG4A_SeabirdDodge, MG4B5_DarkCircuit
@@ -34,6 +35,18 @@ ch06_ending_map = {
     "B": "ch06_ending_B",
     "C": "ch06_ending_C",
     "D": "ch06_ending_D",
+}
+
+# 结局名称展示（名称 + 一行描述）
+ENDING_DISPLAY = {
+    "ch06_ending_G": ("荒诞 · 被带走", "三件不合时宜的小玩具在口袋里轻轻颤了一下——塔不需要灯了。它有你。"),
+    "ch06_ending_death": ("灯塔未解死亡报告", "现场无结构性损伤。配电系统正常。一人失踪。"),
+    "ch06_ending_F": ("被背叛 · 死在黑暗里", "你追着那个声音下了楼梯——但它叫的不是你的名字。"),
+    "ch06_ending_A": ("疯狂 · 独自对话", "补给船走了。你开始听懂塔在说什么——不是语言。"),
+    "ch06_ending_B": ("一起逃离 · 他断开了开关", "三样东西在口袋里。三个人。十四天之后你没有失去任何一个人。"),
+    "ch06_ending_C": ("平安离开 · 什么也没意识到", "你什么也没有从塔里带出来。你把工作做完了。你上了船。"),
+    "ch06_ending_D": ("被杀 · 离开前一夜", "他的手指扣在自己的外套口袋里——扣得很紧。掌心是空的。"),
+    "ch05_ending_e_03": ("提前逃离 · 永不知答案", "你做了一个选择：你在知道和活着之间选了后者。"),
 }
 
 
@@ -60,7 +73,9 @@ class Game:
         # 子系统
         self.state_mgr = StateManager()
         self.save_mgr = SaveManager()
+        self.item_mgr = ItemManager()
         self.story = StoryEngine(self.state_mgr)
+        self.story.set_item_manager(self.item_mgr)
         self.sound_mgr = SoundManager()  # FD-12: 音效模块挂载（M4 空壳 → M5 实装）
         self.window.set_sound_manager(self.sound_mgr)
 
@@ -151,7 +166,8 @@ class Game:
             if val <= low_max:
                 lines.append(entry.get("low", ""))
             else:
-                lines.append(entry.get("high", ""))
+                # high 阈值用 † 标记（绿色），low 阈值保持 ‡ 标记（红色）
+                lines.append(entry.get("high", "").replace("\u2021", "\u2020"))
             lines.append("")
         return "\n".join(lines).strip()
 
@@ -168,6 +184,8 @@ class Game:
         self.window.clear_choices()  # OPT-03
         self._goto("GAME_READY")
         self.state_mgr.reset()
+        self.item_mgr.reset()
+        self.item_mgr.acquire("key")  # 开局自动获得父亲的钥匙
         try:
             self.story.load_chapter(1)
             self.story.goto_node("ch01_start")
@@ -184,7 +202,8 @@ class Game:
         data = self.save_mgr.load("auto") or \
                self.save_mgr.load(1) or \
                self.save_mgr.load(2) or \
-               self.save_mgr.load(3)
+               self.save_mgr.load(3) or \
+               self.save_mgr.load(4)
         if data is None:
             self.cmd_new_game()
             return
@@ -196,6 +215,7 @@ class Game:
         self.story.history = data.get("history", [])
         self.story.flags = data.get("flags", {})
         self.sound_mgr.from_dict(data.get("sound_state", {}))
+        self.item_mgr.from_dict(data.get("items", []))
         try:
             self.story.load_chapter(self.story.chapter)
         except FileNotFoundError:
@@ -339,14 +359,8 @@ class Game:
             self.window.update_panel_notes(notes, day=self.story.day)
             self._last_diary_day = self.story.day
             new_diary = True
-        # 物品列表
-        items = []
-        if self.story.flags.get("found_diary_page"):
-            items.append({"name": "日记残页", "desc": "1930年代守塔人的破旧日记，部分页面被撕去。"})
-        if self.story.flags.get("found_bird_skull"):
-            items.append({"name": "鸟头骨", "desc": "一颗很小的头骨，喙还完整。羽毛烂光了，但眼眶里有什么东西在看你。"})
-        if self.story.flags.get("found_wangchao_drawing"):
-            items.append({"name": "张望潮的水彩画", "desc": "一个孩子画的灯塔——但塔的底部画了一扇门，门里涂了全黑。"})
+        # 物品列表（从 ItemManager 动态渲染）
+        items = self.item_mgr.get_all_items()
         self.window.update_panel_items(items)
         # 更新闪烁提示
         if new_diary:
@@ -375,6 +389,28 @@ class Game:
                 self.window.show_choices([{"label": "继续..."}])
                 # 覆盖选择回调：无真实选项时，"继续..." 直接触发自动推进
                 self.window.on_auto_advance = self.cmd_auto_advance
+            elif node.get("is_ending_chain"):
+                self._show_ending_result(node["node_id"])
+            else:
+                self.window.clear_choices()
+                self._refresh_panel()
+
+    def _show_ending_result(self, node_id: str):
+        """结局链末尾：展示结局名称 + 描述 + D14 日记（如适用）"""
+        name, desc = ENDING_DISPLAY.get(node_id, ("结局", "故事在此结束。"))
+        # D14 日记（仅当玩家到达 D14 时）
+        diary_text = ""
+        if self.story.day >= 14:
+            diary_text = self._diary_snapshots.get("14", "")
+        self.window.show_ending_screen(name, desc, diary_text)
+        # 结局画面在点击后返回标题界面
+        self.window.on_text_complete = self._on_ending_return
+
+    def _on_ending_return(self):
+        """结局画面翻页 → 返回标题界面"""
+        self.window.on_text_complete = self._on_text_done
+        self._fsm = "TITLE"
+        self.window.show_title_screen(self.TITLE_QUOTE)
 
     def cmd_auto_advance(self):
         """无选项时的自动推进（跟随 auto_next）"""
@@ -396,7 +432,8 @@ class Game:
                                self.story.current_node,
                                self.story.chapter, self.story.day,
                                self.story.history, self.story.flags,
-                               self.sound_mgr.to_dict())
+                               self.sound_mgr.to_dict(),
+                               self.item_mgr.to_dict())
         except Exception:
             pass
 
@@ -565,18 +602,18 @@ class Game:
         self._display_node()
 
     def cmd_save(self):
-        """存档——弹出浮窗选择存档位"""
+        """存档——弹出浮窗选择存档位（4 手动 + 1 自动独立）"""
         info = []
-        for slot in [1, 2, 3]:
+        for slot in [1, 2, 3, 4]:
             si = self.save_mgr.get_info(slot)
             si["slot"] = slot
             info.append(si)
         self.window.show_save_dialog(info, self._do_save)
 
     def cmd_load(self):
-        """读档——弹出浮窗选择存档位"""
+        """读档——弹出浮窗选择存档位（4 手动 + 1 自动独立）"""
         info = []
-        for slot in [1, 2, 3, "auto"]:
+        for slot in [1, 2, 3, 4, "auto"]:
             si = self.save_mgr.get_info(str(slot))
             si["slot"] = str(slot)
             info.append(si)
@@ -589,7 +626,8 @@ class Game:
                                self.story.current_node,
                                self.story.chapter, self.story.day,
                                self.story.history, self.story.flags,
-                               self.sound_mgr.to_dict())
+                               self.sound_mgr.to_dict(),
+                               self.item_mgr.to_dict())
             self.window.flash_save_status("已存档 (存档位 {})".format(slot))
         except Exception:
             self.window.flash_save_status("存档失败")
@@ -608,6 +646,7 @@ class Game:
         self.story.history = data.get("history", [])
         self.story.flags = data.get("flags", {})
         self.sound_mgr.from_dict(data.get("sound_state", {}))
+        self.item_mgr.from_dict(data.get("items", []))
         try:
             self.story.load_chapter(self.story.chapter)
         except FileNotFoundError:

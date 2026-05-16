@@ -758,25 +758,43 @@ class MainWindow:
                  font=("Microsoft YaHei", 13, "bold"),
                  fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"]).pack(
                      anchor=tk.W, padx=20, pady=(20, 12))
-        # 存档位列表
+        # 存档位列表（手动 4 位在上，自动位独立在下方）
+        auto_info = None
         for info in slots_info:
             slot = info["slot"]
-            if info.get("exists"):
-                txt = "存档位 {} | {} | 第{}天".format(slot, info.get("save_time", ""), info.get("day", "?"))
-            else:
-                txt = "存档位 {} | （空）".format(slot)
-            row = tk.Frame(self._sl_frame, bg=self.COLORS["panel_bg"])
-            row.pack(fill=tk.X, padx=20, pady=3)
-            lbl = tk.Label(row, text=txt,
-                           font=("Microsoft YaHei", 10),
-                           fg=self.COLORS["text"], bg=self.COLORS["panel_bg"],
-                           cursor="hand2", anchor=tk.W)
-            lbl.pack(fill=tk.X)
-            lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg=self.COLORS["accent"]))
-            lbl.bind("<Leave>", lambda e, l=lbl: l.config(fg=self.COLORS["text"]))
-            def make_cb(s=slot, cb=on_slot_click):
-                return lambda e: (self._hide_save_load_dialog(), cb(s))
-            lbl.bind("<Button-1>", make_cb())
+            # 自动位单独处理
+            if slot == "auto":
+                auto_info = info
+                continue
+            self._render_save_slot_row(slot, info, on_slot_click)
+        # 自动存档位（独立区域）
+        if auto_info:
+            tk.Label(self._sl_frame, text="—— 自动存档 ——",
+                     font=("Microsoft YaHei", 9),
+                     fg="#555555", bg=self.COLORS["panel_bg"]).pack(
+                         anchor=tk.W, padx=20, pady=(16, 4))
+            self._render_save_slot_row("auto", auto_info, on_slot_click)
+
+    def _render_save_slot_row(self, slot, info, on_slot_click):
+        """渲染单个存档位行（手动位或自动位）"""
+        slot_label = "自动存档" if slot == "auto" else "存档位 {}".format(slot)
+        if info.get("exists"):
+            txt = "{} | {} | 第{}天".format(slot_label,
+                info.get("save_time", ""), info.get("day", "?"))
+        else:
+            txt = "{} | （空）".format(slot_label)
+        row = tk.Frame(self._sl_frame, bg=self.COLORS["panel_bg"])
+        row.pack(fill=tk.X, padx=20, pady=3)
+        lbl = tk.Label(row, text=txt,
+                       font=("Microsoft YaHei", 10),
+                       fg=self.COLORS["text"], bg=self.COLORS["panel_bg"],
+                       cursor="hand2", anchor=tk.W)
+        lbl.pack(fill=tk.X)
+        lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg=self.COLORS["accent"]))
+        lbl.bind("<Leave>", lambda e, l=lbl: l.config(fg=self.COLORS["text"]))
+        def make_cb(s=slot, cb=on_slot_click):
+            return lambda e: (self._hide_save_load_dialog(), cb(s))
+        lbl.bind("<Button-1>", make_cb())
 
     def _hide_save_load_dialog(self):
         """关闭存档/读档面板"""
@@ -919,6 +937,8 @@ class MainWindow:
         self._panl_notes_text.tag_configure("notes",
             foreground="#555555", font=("Microsoft YaHei", 9, "italic"))
         self._panl_notes_text.tag_configure("marked",
+            foreground="#cc0000", font=("Microsoft YaHei", 9, "italic", "underline"))
+        self._panl_notes_text.tag_configure("marked_high",
             foreground="#008800", font=("Microsoft YaHei", 9, "italic", "underline"))
         # 状态标题
         tk.Label(self._panel_inner, text="状态",
@@ -936,11 +956,13 @@ class MainWindow:
         self._panel_items_area.pack(fill=tk.X)
 
     def update_panel_notes(self, text: str, day: int = None):
-        """更新面板日记。缓存数据，面板打开时才渲染。"""
+        """更新面板日记。缓存数据，面板打开时才渲染。日记仅显示前一天的记录。"""
         if day is not None and text:
             self._diary_cache[str(day)] = text
-            self._diary_latest_day = day
-            self._diary_view_day = day
+            # 日记只能在第二天看到前一天的
+            display_day = max(1, day - 1)
+            self._diary_latest_day = display_day
+            self._diary_view_day = display_day
         if self._panel_frame and hasattr(self, '_panl_notes_text'):
             try:
                 if self._panl_notes_text.winfo_exists():
@@ -963,10 +985,12 @@ class MainWindow:
         self._panl_notes_text.delete("1.0", tk.END)
         if text:
             import re
-            segments = re.split(r'(‡.*?‡)', text)
+            segments = re.split(r'([\u2021\u2020].*?[\u2021\u2020])', text)
             for seg in segments:
-                if seg.startswith("‡") and seg.endswith("‡"):
+                if seg.startswith("\u2021") and seg.endswith("\u2021"):
                     self._panl_notes_text.insert(tk.END, seg[1:-1], "marked")
+                elif seg.startswith("\u2020") and seg.endswith("\u2020"):
+                    self._panl_notes_text.insert(tk.END, seg[1:-1], "marked_high")
                 else:
                     self._panl_notes_text.insert(tk.END, seg, "notes")
         else:
@@ -1021,19 +1045,30 @@ class MainWindow:
                      font=("Microsoft YaHei", 9, "italic"),
                      fg="#444444", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W)
             return
+        # 计算可用宽度（面板 32% 窗口 − 两侧 pad）
+        panel_w = self._panel_inner.winfo_width()
+        if panel_w < 50:
+            panel_w = 240
+        wrap_w = max(100, panel_w - 24)
         for item in items:
             name = item.get("name", "??")
             desc = item.get("desc", "")
             lbl = tk.Label(self._panel_items_area, text="▸ " + name,
                           font=("Microsoft YaHei", 10),
                           fg=self.COLORS["text"], bg=self.COLORS["panel_bg"],
-                          anchor=tk.W)
-            lbl.pack(anchor=tk.W, pady=2)
+                          anchor=tk.W, wraplength=wrap_w, justify=tk.LEFT)
+            lbl.pack(fill=tk.X, pady=2)
             if desc:
-                def make_enter(d=desc, l=lbl):
-                    return lambda e: l.config(text="▸ " + name + "\n  " + d)
-                def make_leave(n=name, l=lbl):
-                    return lambda e: l.config(text="▸ " + n)
+                def make_enter(d=desc, l=lbl, w=wrap_w, n=name):
+                    return lambda e: (
+                        l.config(wraplength=w),
+                        l.config(text="▸ " + n + "\n  " + d)
+                    )
+                def make_leave(n=name, l=lbl, w=wrap_w):
+                    return lambda e: (
+                        l.config(wraplength=w),
+                        l.config(text="▸ " + n)
+                    )
                 lbl.bind("<Enter>", make_enter())
                 lbl.bind("<Leave>", make_leave())
 
@@ -1043,6 +1078,35 @@ class MainWindow:
         self.day_label.config(text=msg, fg=self.COLORS["text"])
         self.root.after(1500, lambda: self.day_label.config(
             text=old_text, fg=self.COLORS["dim"]))
+
+    def show_ending_screen(self, ending_name: str, ending_desc: str, diary_text: str = ""):
+        """结局画面：结局名称（大字 #cc0000）+ 描述（小字）+ 可选 D14 日记"""
+        self.clear_choices()
+        self._is_typewriting = False
+        self.text_area.config(state=tk.NORMAL)
+        self.text_area.delete("1.0", tk.END)
+        # 结局名称
+        self.text_area.tag_configure("ending_name", font=("Microsoft YaHei", 24, "bold"),
+                                     foreground="#cc0000", justify=tk.CENTER)
+        self.text_area.tag_configure("ending_desc", font=("Microsoft YaHei", 11),
+                                     foreground="#888888", justify=tk.CENTER,
+                                     spacing1=8, spacing3=8)
+        self.text_area.tag_configure("ending_diary", font=("Microsoft YaHei", 9, "italic"),
+                                     foreground="#555555", justify=tk.CENTER,
+                                     spacing1=12)
+        self.text_area.tag_configure("ending_hint", font=("Microsoft YaHei", 9),
+                                     foreground="#444444", justify=tk.CENTER,
+                                     spacing1=20)
+        self.text_area.insert(tk.END, "\n\n\n")
+        self.text_area.insert(tk.END, ending_name + "\n", "ending_name")
+        self.text_area.insert(tk.END, "\n")
+        self.text_area.insert(tk.END, ending_desc + "\n", "ending_desc")
+        if diary_text:
+            self.text_area.insert(tk.END, "\n")
+            self.text_area.insert(tk.END, diary_text + "\n", "ending_diary")
+        self.text_area.insert(tk.END, "\n\n▼ 空格 / 回车返回标题界面", "ending_hint")
+        self.text_area.config(state=tk.DISABLED)
+        self.day_label.config(text="")
 
     # ========== GM 调试栏（Ctrl+Shift+G） ==========
 

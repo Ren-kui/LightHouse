@@ -24,6 +24,10 @@ class StoryEngine:
         self.chapter = 1
         self.day = 1
         self.reached_end = False
+        self.item_mgr = None  # ItemManager 引用，由 Game 注入
+
+    def set_item_manager(self, item_mgr):
+        self.item_mgr = item_mgr
 
     def load_chapter(self, chapter_num: int):
         self.reached_end = False
@@ -70,6 +74,11 @@ class StoryEngine:
         node_flags = n.get("set_flags")
         if node_flags:
             self.flags.update(node_flags)
+        # 节点级 set_items（到达节点时自动获得物品）
+        node_items = n.get("set_items")
+        if node_items and self.item_mgr:
+            for item_id in node_items:
+                self.item_mgr.acquire(item_id)
         return True
 
     def goto_node(self, node_id: str):
@@ -103,16 +112,14 @@ class StoryEngine:
     def check_ending(self) -> str:
         """结局判定（优先级从高到低，命中即止）。
         返回 ending_id ('G'/'death'/'F'/'A'/'E'/'B'/'C'/'D') 或 None（未触发结局）。
-        依据 design.md §2.5 结局触发条件表。
+        依据 design.md §2.5 结局触发条件表 + D047 物品矩阵。
         """
-        # 优先级 1：隐藏道具三件集齐 → 荒诞
-        if (self.flags.get("found_diary_page")
-                and self.flags.get("found_wangchao_drawing")
-                and self.flags.get("found_dad_logbook")):
-            return "G"
-
-        # 优先级 2：MG4/MG5 死亡 → 特殊死亡
-        # 由小游戏结果直接触发，不在此处理（见 _on_minigame_complete）
+        # 优先级 1：三件小玩具集齐 → 荒诞
+        if self.item_mgr:
+            if (self.item_mgr.has("tin_soldier")
+                    and self.item_mgr.has("music_box")
+                    and self.item_mgr.has("warm_marble")):
+                return "G"
 
         c = self.state.get("curiosity")
         s = self.state.get("sanity")
@@ -127,13 +134,15 @@ class StoryEngine:
         if c >= 7 and s <= 3 and (t >= 5 or l >= 3):
             return "A"
         # 优先级 5: E 提前逃离（仅由 ch05_early_escape 路径触发，不在此判定）
-        # 优先级 6: B 一起逃离
-        if c >= 6 and s >= 6 and t >= 7 and l >= 4:
-            return "B"
-        # 优先级 7: D 被杀（必须先于 C 判定——D 是 C 的子集）
-        if c <= 3 and s >= 6 and t <= 3 and l <= 2:
-            return "D"
-        # 优先级 7: C 平安离开
+        # 优先级 6: B 一起逃离（变量 + 钢笔）
+        if self.item_mgr and self.item_mgr.has("pen"):
+            if c >= 6 and s >= 6 and t >= 7 and l >= 4:
+                return "B"
+        # 优先级 7: D 被杀（变量 + 物理课本，必须先于 C）
+        if self.item_mgr and self.item_mgr.has("zhang_textbook"):
+            if c <= 3 and s >= 6 and t <= 3 and l <= 2:
+                return "D"
+        # 优先级 8: C 平安离开
         if c <= 3 and s >= 6:
             return "C"
 
@@ -144,8 +153,28 @@ class StoryEngine:
         if not n:
             return []
         choices = n.get("choices", [])
-        return [c for c in choices
-                if self.state.check_condition(c.get("conditions"))]
+        result = []
+        for c in choices:
+            if not self.state.check_condition(c.get("conditions")):
+                continue
+            # 检查物品条件
+            item_cond = c.get("item_condition")
+            if item_cond and self.item_mgr:
+                if isinstance(item_cond, str):
+                    if not self.item_mgr.has(item_cond):
+                        continue
+                elif isinstance(item_cond, list):
+                    if not all(self.item_mgr.has(i) for i in item_cond):
+                        continue
+                elif isinstance(item_cond, dict):
+                    if item_cond.get("has"):
+                        if not self.item_mgr.has(item_cond["has"]):
+                            continue
+                    if item_cond.get("not_has"):
+                        if self.item_mgr.has(item_cond["not_has"]):
+                            continue
+            result.append(c)
+        return result
 
     def make_choice(self, idx: int):
         """执行选择，返回 None(结束) / node dict(正常跳转) / minigame dict(触发小游戏)"""
@@ -171,13 +200,23 @@ class StoryEngine:
                 "failure_flags": choice.get("failure_flags"),
             }
 
-        # 普通选择：执行 effects + set_flags + 跳转节点
+        # 普通选择：执行 effects + set_flags + set_items/remove_items + 跳转节点
         effects = choice.get("effects")
         if effects:
             self.state.apply_effects(effects)
         set_flags = choice.get("set_flags")
         if set_flags:
             self.flags.update(set_flags)
+        # 物品操作
+        if self.item_mgr:
+            set_items = choice.get("set_items")
+            if set_items:
+                for item_id in set_items:
+                    self.item_mgr.acquire(item_id)
+            remove_items = choice.get("remove_items")
+            if remove_items:
+                for item_id in remove_items:
+                    self.item_mgr.remove(item_id)
         nxt = choice.get("next_node")
         if nxt:
             self._jump_to_node(nxt)

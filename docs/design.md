@@ -107,8 +107,8 @@
 |------|------|------|------|
 | curiosity 好奇心 | 显性 | 0~10 | 0 |
 | sanity 理智 | 显性 | 0~10 | 10 |
-| trust 信任 | 显性 | 0~10 | 5 |
-| survival_will 生存意愿 | 隐藏 | 0~10 | 7 |
+| trust 信任 | 显性 | 0~10 | 4 |
+| survival_will 生存意愿 | 隐藏 | 0~10 | 6 |
 | loyalty 忠诚 | 隐藏 | 0~5 | 3 |
 
 判定：直接分流 / 阈值判定 / 组合判定
@@ -142,7 +142,7 @@
 |------|------|----|------|------|------|------|
 | MG1 | 配电连线 | D2 | +信任 | -信任 | -信任 | 6对端子+6中继点+亮灭灯循环(亮1.5s/灭2.5s)，左→中继→右三段配对，灭灯可操作，36s时限 |
 | MG2 | 太阳能反应 | D2 | +信任 | -信任 | -信任 | 黄点缩小至50%+蓝干扰点(0-2个，点中-1)+移动+15%双黄点，目标6/12 |
-| MG3 | 平台平衡 | D4 | +信任 | -理智 | -忠诚 | 未变 |
+| MG3 | 平台平衡 | D4 | +信任 | -理智 | -忠诚 | 持续点击保持光标稳定在中心区域——20s 时限 |
 | MG4A | 海鸟躲避 | D9 | +survival_will/+trust+头骨flag | -理智 | 不可逃 | 25s计时（被击中≤4次胜利），灰鸟1x/红鸟2.5x(1/15概率)，鼠标归正中心，`found_bird_skull` flag |
 | MG4B | 黑暗收缩复合 | D9 | 上下屏皆胜 | 死亡 | 不可逃 | 上屏6对配电+下屏暗红收缩+能量条(30格/-1每2s/点击+1/连击10过热4s冷却/归零收缩×3/收缩≥1死亡) |
 | MG5 | 黑暗收缩复合 | D12 | 同上 | 死亡 | 不可逃 | 同MG4B，时限45s |
@@ -153,40 +153,75 @@
 
 ### 判定优先级
 
-隐藏道具三件集齐 > MG4/MG5死亡 > 变量组合判定
+三玩具集齐 > MG4/MG5死亡 > 变量组合+物品判定
 
-### 结局触发条件（GD + ND 对齐 · 2026-05-11）
+### 结局触发条件（GD + FD 对齐 · 2026-05-15 · D047）
 
-| 优先级 | ID | 结局 | 判定条件 | 可达路径 |
-|--------|----|------|---------|---------|
-| 1 | **G** | 荒诞 · 被带走 | flags: found_diary_page + found_wangchao_drawing + found_dad_logbook 全 True | curiosity≥7（水彩画）+ survival_will≥8（日志）+ loyalty≥4（撕页） |
-| 2 | **death** | 灯塔未解死亡报告 | MG4-B 或 MG5 失败 | — |
-| 3 | **F** | 被背叛 · 死在黑暗里 | curiosity≥7 + sanity≤3 + trust≤3 + loyalty≤2 | 高好奇路径 + 全选降信任/降忠诚 |
-| 4 | **A** | 疯狂 · 独自对话 | curiosity≥7 + sanity≤3 + (trust≥5 或 loyalty≥3) | 高好奇但留了一条人际关系 |
-| 5 | **E** | 提前逃离 · 永不知答案 | survival_will≥8 + sanity≤4 + trust≤4（ch05 特殊节点） | 高生存 + 低信任 |
-| 6 | **B** | 一起逃离 · 他断开关 | curiosity≥6 + sanity≥6 + trust≥7 + loyalty≥4 | 高好奇但避开伤害理智的选项 |
-| 7 | **D** | 被杀 · 离开前一夜 | curiosity≤3 + sanity≥6 + trust≤3 + loyalty≤2 | 保守但孤立（必须在 C 前判定） |
-| 8 | **C** | 平安离开 · 什么也没意识到 | curiosity≤3 + sanity≥6 | 全程保守路径 |
+| 优先级 | ID | 结局 | 变量条件 | 物品条件 | 路径特征 |
+|--------|----|------|---------|---------|---------|
+| 1 | **G** | 荒诞 · 被带走 | — | tin_soldier + music_box + warm_marble 全齐 | 三件不合时宜的小玩具集齐→直接触发 |
+| 2 | **death** | 灯塔未解死亡报告 | — | — | MG4-B 或 MG5 失败 |
+| 3 | **F** | 被背叛 · 死在黑暗里 | curiosity≥7 + sanity≤3 + trust≤3 + loyalty≤2 | 无 | 高好奇 + 全选降信任/降忠诚 |
+| 4 | **A** | 疯狂 · 独自对话 | curiosity≥7 + sanity≤3 + (trust≥5 或 loyalty≥3) | 无（evil_wood_carving 可助推 sanity） | 高好奇但保留人际关系 |
+| 5 | **E** | 提前逃离 · 永不知答案 | survival_will≥8 + sanity≤4 + trust≤4（ch05 特殊节点） | 无 | 高生存 + 低信任 |
+| 6 | **B** | 一起逃离 · 他断开关 | curiosity≥6 + sanity≥6 + trust≥7 + loyalty≥4 | pen（纯黑钢笔） | 高好奇但避开伤害理智 |
+| 7 | **D** | 被杀 · 离开前一夜 | curiosity≤3 + sanity≥6 + trust≤3 + loyalty≤2 | zhang_textbook（张望潮物理课本） | 保守孤立（必须在 C 前判定） |
+| 8 | **C** | 平安离开 · 什么也没意识到 | curiosity≤3 + sanity≥6 | 无 | 全程保守 |
+
+### 物品体系
+
+详见 §2.7 物品系统。物品作为结局的必要条件（AND 关系），与变量组合判定共同决定结局归属。部分物品携带变量效果，在面板中显示但不修改 StateManager 实值。
 
 ### 结局表现形式
 
-**递进链**：每个结局的正文由 3-5 个纯文字节点 + 单选"继续..."构成（`is_ending_chain: true`）。引擎进入结局链后切换到只读模式——禁面板/Tab/存档/GM。最后节点显示结局画面。
+**递进链**：每个结局的正文由 3-5 个纯文字节点 + 单选"继续..."构成（`is_ending_chain: true`）。引擎进入结局链后切换到只读模式——禁面板/Tab/存档/GM。末节点显示结局名称画面（P3-6）。
 
-### 隐藏道具 X
+### 结局名称展示
 
-| 道具 | flag 名 | 获取节点 |
-|------|---------|---------|
-| 撕去的日记页 | `found_diary_page` | ch05_talk_zhang (loyalty≥4) |
-| 张望潮的水彩画 | `found_wangchao_drawing` | ch04_return_drawer (curiosity≥7) |
-| 父亲的航海日志 | `found_dad_logbook` | ch04_darkness_end (survival_will≥8) |
-
-三件全齐 → 结局 G。
+结局链最后一帧显示：结局名称（大号 #cc0000）+ 结局描述（一行小字 #888888）+ D14 日记（如适用）。
 
 ---
 
 ## 2.6 存档
 
-3手动位(玩家存档按钮) + 1自动位(每次节点切换)
+4手动位 + 1自动位（独立区域，上下排列）。自动位每次节点切换自动覆盖。
+
+---
+
+## 2.7 物品系统
+
+> 认领角色：**GD**（物品定义+结局关联）、**ND**（物品描述文案）、**FD**（ItemManager 实现）
+
+### 架构
+
+```
+src/item_manager.py    ItemManager 类（acquire/remove/has/carry_effects/consume/destroy）
+data/items.json        物品定义（id/name/desc/carry_effects/obtain/destroy_quest）
+```
+
+物品独立于 StateManager（5 变量）和 StoryEngine（flag 系统）管理。
+
+### 物品清单（7 件 · D048）
+
+| ID | 名称 | 获取 | 携带效果 | 关联结局 |
+|----|------|------|---------|---------|
+| `key` | 父亲的钥匙 | 开局自动 | survival_will +2 | 起点道具 |
+| `tin_soldier` | 不锈的锡兵 | ch02 探索 6 楼墙缝 | — | G 玩具① |
+| `music_box` | 自鸣八音盒 | ch03 地下室·选择拿走八音盒（与拆墙/离开三选一） | survival_will -1 | G 玩具② |
+| `warm_marble` | 暖弹珠 | ch04 D8 梦境醒·选项1（与 evil_wood_carving 互斥） | — | G 玩具③ |
+| `evil_wood_carving` | 邪恶木雕 | ch04 D8 梦境醒·选项2（与 warm_marble 互斥） | sanity -2 | A/F 助推 |
+| `pen` | 纯黑钢笔 | 闲逛任务全清后插入叙事获得 | — | B 必要条件 |
+| `zhang_textbook` | 张望潮的物理课本 | ch03 夹层·隐藏选项（loyalty≤2） | — | D 必要条件 |
+
+### 相互制约关系
+
+- `warm_marble` 与 `evil_wood_carving` 互斥：ch04 D8 梦境醒后三选一（含"直接起床不拿任何东西"），选了一个另一个永久错过。
+- `warm_marble` 为 G 结局三玩具之一；`evil_wood_carving` 推进 A/F 结局方向。
+- `tin_soldier` + `music_box` + `warm_marble` 三件全齐 → 结局 G（替代旧 flags 三件套）。
+
+### 面板渲染
+
+面板"随身物品"区域从 ItemManager 动态渲染：▸ 物品名 + 悬停显示描述 + 携带效果（如 `生存意志+2`）。空时显示"（空无一物）"。
 
 
 

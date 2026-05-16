@@ -1,0 +1,51 @@
+{
+  "key": {
+    "name": "父亲的钥匙",
+    "desc": "一把布满锈迹的铜钥匙，你父亲留下的。握在手里微微发暖。",
+    "carry_effects": { "survival_will": 2 },
+    "obtain": "开局自动获得",
+    "destroy_quest": null
+  },
+  "tin_soldier": {
+    "name": "不锈的锡兵",
+    "desc": "一个旧式锡兵玩具，在盐雾侵蚀的塔里放了不知多少年，毫无锈迹。底座刻着'1930'。",
+    "carry_effects": {},
+    "obtain": "ch02 探索时在 6 楼墙缝发现",
+    "destroy_quest": null
+  },
+  "music_box": {
+    "name": "自鸣八音盒",
+    "desc": "一个没有发条的八音盒。午夜会自己转起来，放的是一首没人听过的曲子。",
+    "carry_effects": { "survival_will": -1 },
+    "obtain": "ch03 地下室·选择拿走八音盒",
+    "destroy_quest": null
+  },
+  "warm_marble": {
+    "name": "暖弹珠",
+    "desc": "一颗普通的玻璃弹珠，但永远微温。握在手心里像握着另一只手的温度。",
+    "carry_effects": {},
+    "obtain": "ch04 D8 梦境醒后选项 1（枕头下）",
+    "destroy_quest": null
+  },
+  "evil_wood_carving": {
+    "name": "邪恶木雕",
+    "desc": "一个表情扭曲的黑色木雕——不是人，但也不是别的什么。它的眼睛是睁开的，不管你把它转到哪个方向。",
+    "carry_effects": { "sanity": -2 },
+    "obtain": "ch04 D8 梦境醒后选项 2（头边）",
+    "destroy_quest": null
+  },
+  "pen": {
+    "name": "纯黑钢笔",
+    "desc": "一支通体黑色的钢笔，不是你的。笔帽上刻着一个'生'字。",
+    "carry_effects": {},
+    "obtain": "完成全部闲逛任务后，脚边出现",
+    "destroy_quest": null
+  },
+  "zhang_textbook": {
+    "name": "张望潮的物理课本",
+    "desc": "一本中学物理课本，封面写着'张望潮'——歪歪扭扭的铅笔字。里面夹着一张折成小方块的草稿纸。",
+    "carry_effects": {},
+    "obtain": "ch03 夹层隐藏选项（loyalty≤2）",
+    "destroy_quest": null
+  }
+}

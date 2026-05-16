@@ -44,6 +44,9 @@
 | B026 | `_diary_cache` AttributeError——`_diary_cache` 等属性在 `_build_panel_content()`（面板打开时）才初始化，但 `update_panel_notes` 在节点切换时就调用，面板未打开时属性不存在 → crash。属性移至 `__init__` 初始化修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
 | B027 | `_panl_notes_text` TclError——`_render_diary` 在面板关闭时调用，widget 已被 `destroy()` 销毁，访问报 `invalid command name`。加 `winfo_exists()` + `try/except TclError` 守卫修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
 | B028 | `after_cancel(0)` ValueError——`flash_update_indicator` 中用 `getattr(self, '_flash_job', 0)` 取默认值，`_flash_job` 不存在时返回 `0`，传 `after_cancel(0)` 报非法 ID。改为 `hasattr` 判真才 cancel 修复 | P0 | FD | FD | 2026-05-14 | 2026-05-14 |
+| B029 | chapter_02.json JSON 解析失败——`ch02_free_mg1_done` 节点文本内嵌 ASCII `"`（`"没有任务"`）破坏 JSON 结构，导致第 2 章加载失败。改为中文引号修复 | P0 | FD | FD | 2026-05-15 | 2026-05-15 |
+| B030 | 物品面板悬停文字溢出——`update_panel_items` 中 `Label` 未设 `wraplength`，物品描述（最长 57 字）超出面板宽度被裁切。加动态 `wraplength` + `justify=LEFT` + `fill=tk.X` 修复 | P1 | FD | FD | 2026-05-15 | 2026-05-15 |
+| B031 | 日记重点文字全红——diary.json 中 low/high 阈值共用一个 `‡` 标记，`_get_diary_text()` 无法区分，改 marked 标签颜色后高低阈值全变红。high 文本改用 `†` 标记 + 渲染端分 `marked`(红)/`marked_high`(绿) 双 tag 修复 | P1 | 老板 | FD | 2026-05-15 | 2026-05-15 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |

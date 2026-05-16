@@ -12,8 +12,8 @@ class StateManager:
     SPEC = {
         "curiosity":     ("好奇心",   True,  0, 10, 0),
         "sanity":        ("理智",     True,  0, 10, 10),
-        "trust":         ("信任",     True,  0, 10, 5),
-        "survival_will": ("生存意愿", False, 0, 10, 7),
+        "trust":         ("信任",     True,  0, 10, 4),
+        "survival_will": ("生存意愿", False, 0, 10, 6),
         "loyalty":       ("忠诚",     False, 0, 5,  3),
     }
 

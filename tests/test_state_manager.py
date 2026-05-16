@@ -23,8 +23,8 @@ class TestStateManager(unittest.TestCase):
     def test_default_values(self):
         self.assertEqual(self.sm.get("curiosity"), 0)
         self.assertEqual(self.sm.get("sanity"), 10)
-        self.assertEqual(self.sm.get("trust"), 5)
-        self.assertEqual(self.sm.get("survival_will"), 7)
+        self.assertEqual(self.sm.get("trust"), 4)
+        self.assertEqual(self.sm.get("survival_will"), 6)
         self.assertEqual(self.sm.get("loyalty"), 3)
 
     def test_all_vars_present(self):
@@ -43,7 +43,7 @@ class TestStateManager(unittest.TestCase):
 
     def test_change_normal(self):
         self.sm.change("trust", 2)
-        self.assertEqual(self.sm.get("trust"), 7)
+        self.assertEqual(self.sm.get("trust"), 6)
 
     def test_change_returns_new_value(self):
         result = self.sm.change("loyalty", 1)
@@ -56,13 +56,13 @@ class TestStateManager(unittest.TestCase):
         self.sm.apply_effects(effects)
         self.assertEqual(self.sm.get("curiosity"), 3)
         self.assertEqual(self.sm.get("sanity"), 8)
-        self.assertEqual(self.sm.get("trust"), 6)
+        self.assertEqual(self.sm.get("trust"), 5)
 
     def test_apply_effects_skip_zero(self):
         effects = {"curiosity": 0, "trust": 1}
         self.sm.apply_effects(effects)
         self.assertEqual(self.sm.get("curiosity"), 0)
-        self.assertEqual(self.sm.get("trust"), 6)
+        self.assertEqual(self.sm.get("trust"), 5)
 
     def test_apply_effects_none(self):
         self.sm.apply_effects(None)
@@ -85,8 +85,8 @@ class TestStateManager(unittest.TestCase):
         self.assertTrue(self.sm.check_condition({"sanity": {"max": 8}}))
 
     def test_condition_eq_pass(self):
-        self.sm.change("trust", 0)  # trust stays at default 5
-        self.assertTrue(self.sm.check_condition({"trust": {"eq": 5}}))
+        self.sm.change("trust", 0)  # trust stays at default 4
+        self.assertTrue(self.sm.check_condition({"trust": {"eq": 4}}))
 
     def test_condition_eq_fail(self):
         self.assertFalse(self.sm.check_condition({"trust": {"eq": 10}}))
@@ -120,7 +120,7 @@ class TestStateManager(unittest.TestCase):
         self.assertEqual(self.sm.describe("sanity"), "我没事。真的。")
 
     def test_describe_trust_band(self):
-        self.assertEqual(self.sm.describe("trust"), "他沉默，但至少现在——他不会害我。")
+        self.assertEqual(self.sm.describe("trust"), "不能相信他。他在隐瞒什么。")
 
     # ---- 显隐分离 ----
 
@@ -136,12 +136,15 @@ class TestStateManager(unittest.TestCase):
 
     def test_to_dict_from_dict_roundtrip(self):
         self.sm.change("curiosity", 7)   # 0 + 7 = 7
-        self.sm.change("trust", -3)      # 5 - 3 = 2
+        self.sm.change("trust", -3)      # 4 - 3 = 1
         data = self.sm.to_dict()
         sm2 = StateManager()
         sm2.from_dict(data)
+        self.assertEqual(sm2.get("trust"), 1)
+        sm2 = StateManager()
+        sm2.from_dict(data)
         self.assertEqual(sm2.get("curiosity"), 7)
-        self.assertEqual(sm2.get("trust"), 2)
+        self.assertEqual(sm2.get("trust"), 1)
         self.assertEqual(sm2.get("sanity"), 10)
 
     def test_from_dict_partial(self):

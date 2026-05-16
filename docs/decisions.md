@@ -472,3 +472,33 @@
 | **决定** | 五批次小游戏优化（B1~B5），分批交付独立验证。B1 全局 UI：minigame_area 从全屏→居中 700×550 固定框架，外框 #555555 3px，所有小游戏自动受益。B2 MG1 配电：6对端子+6中继点+亮灭灯循环(亮1.5s/灭2.5s)；左→中继→右三段配对，灭灯可操作(靠记忆)，30s时限。B3 MG2 太阳能(待)：缩小+蓝干扰+移动+双点。B4 MG4A 海鸟(待)：25秒计时+红鸟+鼠标归正+鸟头骨flag。B5 MG4B/MG5 黑暗收缩(待)：暗红收缩+分屏配电组合+能量条过热。 |
 | **动机** | 老板会议提出四小游戏难度太低/体验差，需全面优化。GD/FD/UI/PM 联合讨论确定方案。 |
 | **落入位置** | `design.md` §2.4 + `progress.md` M6 + `minigame_base.py` / `darkness_overlay.py` / `main_window.py` |
+
+
+## D046 - M7 全量优化版本启动（物品系统 + 8结局重配）
+
+| 项 | 决定 |
+|---|------|
+| **日期** | 2026-05-15 |
+| **决定** | 启动 M7 里程碑，涵盖 10 项优化：① 物品系统新建 `ItemManager` 模块（不扩展现有 StateManager/StoryEngine）；② MG3 平台平衡小游戏接入 ch03；③ trust 初始值 5→4，survival_will 初始值 7→6；④ 主角开局携带"父亲的钥匙"（survival_will+2）；⑤ 结局 G 改为集齐 3 件小玩具（tin_soldier/music_box/warm_marble）；⑥ 结局 B 加钢笔条件；⑦ 结局 D 加张望潮物理课本条件；⑧ 存档 3+1 扩展为 4+1（自动位独立）；⑨ 标题界面增加结局收集功能；⑩ 结局名称严肃展示 + 日记时间逻辑 + 日记低阈值红色。全部纳入本版本，P3 不拆分。 |
+| **动机** | 老板提出 10 项优化需求，PM 召集 GD/ND/FD/UI 讨论形成完整方案。物品系统从 flags 升级为独立模块，支撑多结局物品逻辑。 |
+| **落入位置** | `design.md` §2.3/§2.4/§2.5/§2.6/§2.7 + `progress.md` M7 + `data/items.json` + `src/item_manager.py` |
+
+
+## D047 - 结局物品判定矩阵（老板确认版）
+
+| 项 | 决定 |
+|---|------|
+| **日期** | 2026-05-15 |
+| **决定** | 8 结局物品条件如下：G→三玩具(tin_soldier+music_box+warm_marble)；death→minigame 触发；F→仅变量，无物品；A→仅变量，无物品（邪恶木雕可助推 sanity）；E→仅变量+特殊路径；B→变量+钢笔(pen)；D→变量+张望潮物理课本(zhang_textbook)；C→仅变量。物品作为结局必要条件，与变量组合判定组成 AND 关系。邪恶木雕(warm_marble 互斥选项)携带效果 sanity-2，为 A/F 结局助推道具。 |
+| **动机** | 老板指定各结局物品需求，GD 确认。替代原 D034 纯变量结局表。 |
+| **落入位置** | `design.md` §2.5 + `data/items.json` + `src/story_engine.py:check_ending()` |
+
+
+## D048 - 物品系统架构决策（ItemManager + JSON 数据驱动）
+
+| 项 | 决定 |
+|---|------|------|
+| **日期** | 2026-05-15 |
+| **决定** | ① 新建 `src/item_manager.py` — ItemManager 类，方法：acquire/remove/has/carry_effects/consume/destroy/to_dict/from_dict。② 新建 `data/items.json` — 物品定义（id/name/desc/carry_effects/obtain/destroy_quest）。③ 物品不存储在 StateManager 或 StoryEngine.flags，独立管理。④ 物品携带效果叠加在面板显示中，不修改 StateManager 实值（避免存档污染）。⑤ 旧 flags 系统保留（found_diary_page 等），逐步迁移或共存。⑥ GD/ND 维护 items.json，FD 维护 item_manager.py。 |
+| **动机** | 现有 flags 系统仅 4 个布尔值，无法支持物品效果/销毁/携带/组合。W010 教训要求状态隔离。新建独立模块比扩展现有模块更安全、更易维护。 |
+| **落入位置** | `src/item_manager.py` + `data/items.json` + `design.md` §2.7 + `progress.md` M7 |

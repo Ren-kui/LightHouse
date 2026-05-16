@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 save_manager.py —— 存档/读档管理器
-3 手动存档位 + 1 自动存档位，JSON 格式读写。
+4 手动存档位 + 1 自动存档位，JSON 格式读写。
 详见 design.md 2.6 / 4.3
 """
 
@@ -21,7 +21,7 @@ class SaveManager:
 
     def save(self, slot, state_mgr, current_node: str,
              chapter: int, day: int, history: list, flags: dict,
-             sound_state: dict = None):
+             sound_state: dict = None, items: list = None):
         data = {
             "save_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "current_node": current_node,
@@ -31,6 +31,7 @@ class SaveManager:
             "history": history,
             "flags": flags,
             "sound_state": sound_state or {},
+            "items": items or [],
         }
         with open(self._path(slot), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
