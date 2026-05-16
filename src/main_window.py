@@ -1380,22 +1380,33 @@ class MainWindow:
     # ========== 更新闪烁提示 ==========
 
     def flash_update_indicator(self):
-        """Tab备忘录 + 状态栏提示呼吸闪光8秒"""
+        """备忘录更新气泡提示：'新内容加入'，持续6秒后消失"""
         if not hasattr(self, '_tab_hint'):
             return
-        if hasattr(self, '_flash_job') and self._flash_job:
-            self.root.after_cancel(self._flash_job)
-            self._flash_job = None
-        steps = 16
-        def _tick(s=0):
-            if s >= steps:
-                self._tab_hint.config(fg="#333333")
-                self._flash_job = None
-                return
-            color = "#cc6600" if s % 2 == 0 else "#333333"
-            self._tab_hint.config(fg=color)
-            self._flash_job = self.root.after(500, lambda: _tick(s + 1))
-        _tick()
+        # 取消旧气泡和计时器
+        if hasattr(self, '_bubble') and self._bubble:
+            self._bubble.destroy()
+            self._bubble = None
+        if hasattr(self, '_bubble_job') and self._bubble_job:
+            self.root.after_cancel(self._bubble_job)
+            self._bubble_job = None
+        # 创建气泡（浮在 Tab 提示上方）
+        self._bubble = tk.Label(
+            self.status_bar,
+            text="✦ 新内容加入",
+            font=("Microsoft YaHei", 9, "bold"),
+            fg="#ffffff",
+            bg="#553300",
+            padx=10, pady=3)
+        self._bubble.place(in_=self._tab_hint, x=0, y=-28)
+        self._bubble.lift()
+        self._bubble_job = self.root.after(6000, self._hide_bubble)
+
+    def _hide_bubble(self):
+        if hasattr(self, '_bubble') and self._bubble:
+            self._bubble.destroy()
+            self._bubble = None
+        self._bubble_job = None
 
     # ========== 小游戏区域（OPT-11: 居中 + UI 框） ==========
 
