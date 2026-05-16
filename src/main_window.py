@@ -174,6 +174,9 @@ class MainWindow:
 
     def _build_status_bar(self):
         """底部：存档 / 读档 / 天数 / Tab提示"""
+        # 顶框分割线
+        sep = tk.Frame(self.status_bar, height=1, bg="#333333")
+        sep.pack(side=tk.TOP, fill=tk.X)
         for label, attr_name in [(" 存档 ", "on_save_clicked"),
                                   (" 读档 ", "on_load_clicked")]:
             btn = tk.Label(self.status_bar, text=label,
@@ -194,12 +197,12 @@ class MainWindow:
         self.day_label.pack(side=tk.RIGHT, padx=20, pady=6)
 
         self._notify_label = tk.Label(self.status_bar, text="",
-                font=("Microsoft YaHei", 9, "bold"),
+                font=("Microsoft YaHei", 8, "bold"),
                 fg="#ffffff", bg=self.COLORS["status_bg"],
-                padx=6, pady=2)
+                padx=4, pady=1)
         self._notify_label.pack(side=tk.RIGHT, padx=4, pady=6)
         self._tab_hint = tk.Label(self.status_bar, text="Tab 备忘录",
-                 font=("Microsoft YaHei", 7), fg="#333333",
+                 font=("Microsoft YaHei", 10, "bold"), fg="#555555",
                  bg=self.COLORS["status_bg"])
         self._tab_hint.pack(side=tk.RIGHT, padx=8, pady=6)
         # GM 调试栏快捷键（仅 gm_enabled 时生效）
