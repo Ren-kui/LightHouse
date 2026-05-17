@@ -47,5 +47,12 @@
     "carry_effects": {},
     "obtain": "ch03 夹层隐藏选项（loyalty≤2）",
     "destroy_quest": null
+  },
+  "wangchao_drawing": {
+    "name": "张望潮的水彩画",
+    "desc": "一个孩子画的灯塔——塔的底部画了一扇门，门里涂了全黑。铅笔的凹痕摸得到。",
+    "carry_effects": { "curiosity": 1 },
+    "obtain": "ch04 D8 重返第一天抽屉",
+    "destroy_quest": null
   }
 }

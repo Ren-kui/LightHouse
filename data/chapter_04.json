@@ -116,7 +116,7 @@
           "important": true,
           "next_node": "ch04_return_drawer",
           "effects": { "curiosity": 1, "sanity": 0, "trust": 0, "survival_will": 0, "loyalty": 0 },
-          "set_flags": { "found_wangchao_drawing": true },
+          "set_items": ["wangchao_drawing"],
           "conditions": { "curiosity": { "min": 7 } },
           "multi_click": null
         }

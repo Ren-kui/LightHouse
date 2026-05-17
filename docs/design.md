@@ -212,6 +212,7 @@ data/items.json        物品定义（id/name/desc/carry_effects/obtain/destroy_
 | `evil_wood_carving` | 邪恶木雕 | ch04 D8 梦境醒·选项2（与 warm_marble 互斥） | sanity -2 | A/F 助推 |
 | `pen` | 纯黑钢笔 | 闲逛任务全清后插入叙事获得 | — | B 必要条件 |
 | `zhang_textbook` | 张望潮的物理课本 | ch03 夹层·隐藏选项（loyalty≤2） | — | D 必要条件 |
+| `wangchao_drawing` | 张望潮的水彩画 | ch04 D8 重返第一天抽屉（curiosity≥7） | curiosity +1 | 叙事回溯 |
 
 ### 相互制约关系
 
