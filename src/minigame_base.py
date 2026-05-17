@@ -1346,7 +1346,7 @@ class MG4B5_DarkCircuit(MinigameBase):
     ENERGY_DECAY_S = 2     # 每2秒消退1格
     OVERHEAT_THRESHOLD = 10  # 连续点击≥10次触发过热
     OVERHEAT_COOLDOWN = 4   # 过热冷却秒数
-    SHRINK_BASE = 0.0068     # 基础收缩速度/帧（0.008×0.85），能量归零时×3
+    SHRINK_BASE = 0.0061     # 基础收缩速度/帧（0.0068×0.9），能量归零时×3
 
     TIME_LIMIT = 50
 

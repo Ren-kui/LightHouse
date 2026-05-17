@@ -51,6 +51,7 @@ class MainWindow:
         self.on_menu_new_game = None
         self.on_menu_continue = None
         self.on_menu_collection = None
+        self.on_gm_unlock_collection = None
         self.on_choice_made = None
         self.on_text_complete = None
         self.on_toggle_panel = None
@@ -1269,6 +1270,19 @@ class MainWindow:
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, padx=pad, pady=(8, 2))
         self._gm_preset_frame = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
         self._gm_preset_frame.pack(fill=tk.X, padx=pad)
+
+        # —— GM 工具按钮 ——
+        btn_frame = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
+        btn_frame.pack(fill=tk.X, padx=pad, pady=(6, 0))
+        self._gm_unlock_btn = tk.Label(btn_frame, text="▸ 解锁全部结局收集",
+               font=("Microsoft YaHei", 9),
+               fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"],
+               cursor="hand2", anchor=tk.W)
+        self._gm_unlock_btn.pack(anchor=tk.W)
+        self._gm_unlock_btn.bind("<Enter>", lambda e: self._gm_unlock_btn.config(fg=self.COLORS["accent"]))
+        self._gm_unlock_btn.bind("<Leave>", lambda e: self._gm_unlock_btn.config(fg=self.COLORS["dim"]))
+        self._gm_unlock_btn.bind("<Button-1>",
+            lambda e: self.on_gm_unlock_collection and self.on_gm_unlock_collection())
 
     def refresh_gm_panel(self, nodes_ordered: list, current_node: str, variables: dict,
                           presets: list, chapters_loaded: list, all_chapters: list,
