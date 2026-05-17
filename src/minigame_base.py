@@ -821,15 +821,18 @@ class MG2_SolarReaction(MinigameBase):
 # ============================================================
 
 class MG3_PlatformBalance(MinigameBase):
-    """持续点击保持光标稳定在中心区域。"""
+    """持续点击保持光标稳定在中心区域。B+C难度：随机阵风+收缩安全区。"""
 
-    SURVIVAL_TIME = 20  # 需要坚持的秒数
-    DRIFT_SPEED = 1.5   # 每帧漂移像素
-    ZONE_RADIUS = 60    # 安全区半径
+    SURVIVAL_TIME = 20
+    DRIFT_SPEED = 2.0        # 基础漂移速度
+    ZONE_RADIUS_START = 100  # 安全区初始半径
+    ZONE_RADIUS_MIN = 80     # 安全区最小半径
+    GUST_MIN_INTERVAL = 3.5  # 阵风最短间隔（秒）
+    GUST_MAX_INTERVAL = 7.0  # 阵风最长间隔（秒）
 
     def __init__(self, parent: tk.Frame):
         super().__init__(parent)
-        self.canvas.config(width=600, height=400)
+        self.canvas.config(width=680, height=520)
 
         self._elapsed = 0.0
         self._marker_x = 0
@@ -839,16 +842,32 @@ class MG3_PlatformBalance(MinigameBase):
         self._marker_id = None
         self._zone_id = None
         self._timer_id = None
+        self._gust_job = None
+        self._gust_warn_id = None
+        self._gust_dir_x = 0
+        self._gust_dir_y = 0
+        self._current_radius = self.ZONE_RADIUS_START
 
     def _on_start(self):
         self._draw_ui()
         self.canvas.bind("<Button-1>", self._on_click)
         self.parent.winfo_toplevel().bind("<space>", self._on_space)
+        # 鼠标归正到中心
+        try:
+            import ctypes
+            cx_scr = self.canvas.winfo_rootx() + self._cx
+            cy_scr = self.canvas.winfo_rooty() + self._cy
+            ctypes.windll.user32.SetCursorPos(cx_scr, cy_scr)
+        except Exception:
+            pass
+        self._schedule_gust()
         self._tick()
 
     def _on_stop(self):
         if self._timer_id:
             self.canvas.after_cancel(self._timer_id)
+        if self._gust_job:
+            self.canvas.after_cancel(self._gust_job)
         if self.canvas and self.canvas.winfo_exists():
             self.canvas.unbind("<Button-1>")
         self.parent.winfo_toplevel().unbind("<space>")
@@ -857,23 +876,23 @@ class MG3_PlatformBalance(MinigameBase):
         self.canvas.delete("all")
         w = self.canvas.winfo_width()
         h = self.canvas.winfo_height()
-        if w < 50: w = 688
-        if h < 50: h = 538
+        if w < 50: w = 680
+        if h < 50: h = 520
 
-        self.canvas.create_text(w // 2, 30,
+        self.canvas.create_text(w // 2, 24,
                                 text="直升机平台平衡测试",
                                 fill="#e8e8e8",
                                 font=("Microsoft YaHei", 14, "bold"))
-        self.canvas.create_text(w // 2, 58,
+        self.canvas.create_text(w // 2, 52,
                                 text="连续点击 / 空格键保持光标在中心区域内",
                                 fill="#666666",
                                 font=("Microsoft YaHei", 9))
 
         self._cx = w // 2
-        self._cy = h // 2 + 20
+        self._cy = h // 2 + 16
 
-        # 安全区
-        rz = self.ZONE_RADIUS
+        # 安全区（初始半径100）
+        rz = self._current_radius
         self._zone_id = self.canvas.create_oval(
             self._cx - rz, self._cy - rz,
             self._cx + rz, self._cy + rz,
@@ -887,25 +906,65 @@ class MG3_PlatformBalance(MinigameBase):
             self._cx - rz, self._cy, self._cx + rz, self._cy,
             fill="#1a1a1a")
 
-        # 标记（玩家控制的光标）
+        # 光标（放大到 24×24）
         self._marker_x = self._cx
         self._marker_y = self._cy
         self._marker_id = self.canvas.create_rectangle(
-            self._cx - 8, self._cy - 8,
-            self._cx + 8, self._cy + 8,
-            fill="#cc6600", outline="#ff8800", width=2)
+            self._marker_x - 12, self._marker_y - 12,
+            self._marker_x + 12, self._marker_y + 12,
+            fill="#cc6600", outline="#ff8800", width=3)
 
         # 状态文字
         self._status_id = self.canvas.create_text(
-            w // 2, h - 30,
+            w // 2, h - 22,
             text="坚持 {} 秒 | 已过 0.0 秒".format(self.SURVIVAL_TIME),
             fill="#aaaaaa",
             font=("Microsoft YaHei", 10))
 
-        # 随机初始漂移方向
+        # 阵风方向箭头（初始隐藏）
+        self._gust_warn_id = self.canvas.create_text(
+            w // 2, self._cy - rz - 20,
+            text="", fill="#cc0000",
+            font=("Microsoft YaHei", 11, "bold"))
+
+        # 随机初始漂移
         angle = random.uniform(0, 2 * math.pi)
         self._drift_x = math.cos(angle) * self.DRIFT_SPEED
         self._drift_y = math.sin(angle) * self.DRIFT_SPEED
+
+    # ===== 阵风系统 =====
+
+    def _schedule_gust(self):
+        if not self._running:
+            return
+        interval = random.uniform(self.GUST_MIN_INTERVAL, self.GUST_MAX_INTERVAL)
+        self._gust_job = self.canvas.after(int(interval * 1000), self._trigger_gust)
+
+    def _trigger_gust(self):
+        if not self._running:
+            return
+        # 随机风向
+        angle = random.uniform(0, 2 * math.pi)
+        strength = random.uniform(22, 38)
+        self._gust_dir_x = math.cos(angle) * strength
+        self._gust_dir_y = math.sin(angle) * strength
+        # 显示风向提示（0.6秒）
+        dir_chars = ["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"]
+        idx = int((angle + math.pi / 8) / (math.pi / 4)) % 8
+        self.canvas.itemconfig(self._gust_warn_id, text="◈ 强风 {} ◈".format(dir_chars[idx]))
+        self.canvas.after(600, lambda: self._clear_gust_warn())
+        # 阵风推力
+        self._marker_x += self._gust_dir_x
+        self._marker_y += self._gust_dir_y
+        self._gust_dir_x = 0
+        self._gust_dir_y = 0
+        self._schedule_gust()
+
+    def _clear_gust_warn(self):
+        if self.canvas and self.canvas.winfo_exists():
+            self.canvas.itemconfig(self._gust_warn_id, text="")
+
+    # ===== 点击 =====
 
     def _on_click(self, event):
         if not self._running:
@@ -918,16 +977,18 @@ class MG3_PlatformBalance(MinigameBase):
         self._push_toward_center()
 
     def _push_toward_center(self):
-        push_strength = 12
+        push_strength = 14
         dx = self._cx - self._marker_x
         dy = self._cy - self._marker_y
         dist = math.sqrt(dx * dx + dy * dy)
         if dist > 0:
             self._marker_x += (dx / dist) * push_strength
             self._marker_y += (dy / dist) * push_strength
-        # 随机偏移漂移方向
-        self._drift_x = random.uniform(-1.5, 1.5)
-        self._drift_y = random.uniform(-1.5, 1.5)
+        # 微调漂移方向
+        self._drift_x += random.uniform(-0.8, 0.8)
+        self._drift_y += random.uniform(-0.8, 0.8)
+
+    # ===== 主循环 =====
 
     def _tick(self):
         if not self._running:
@@ -938,30 +999,40 @@ class MG3_PlatformBalance(MinigameBase):
         self._marker_x += self._drift_x
         self._marker_y += self._drift_y
 
-        # 更新标记位置
+        # 更新光标位置
         self.canvas.coords(self._marker_id,
-                           self._marker_x - 8, self._marker_y - 8,
-                           self._marker_x + 8, self._marker_y + 8)
+                           self._marker_x - 12, self._marker_y - 12,
+                           self._marker_x + 12, self._marker_y + 12)
 
-        # 更新状态文字
+        # 收缩安全区（最后8秒加速收缩100→80）
+        progress = self._elapsed / self.SURVIVAL_TIME
+        if progress > 0.6:
+            shrink_progress = (progress - 0.6) / 0.4
+            self._current_radius = int(self.ZONE_RADIUS_START
+                - (self.ZONE_RADIUS_START - self.ZONE_RADIUS_MIN) * shrink_progress)
+            self.canvas.coords(self._zone_id,
+                               self._cx - self._current_radius, self._cy - self._current_radius,
+                               self._cx + self._current_radius, self._cy + self._current_radius)
+
+        # 状态文字
         self.canvas.itemconfig(self._status_id,
                                text="坚持 {} 秒 | 已过 {:.1f} 秒".format(
                                    self.SURVIVAL_TIME, self._elapsed))
 
-        # 检查是否出界
+        # 出界判定（用当前半径）
         dx = self._marker_x - self._cx
         dy = self._marker_y - self._cy
         dist = math.sqrt(dx * dx + dy * dy)
-        if dist > self.ZONE_RADIUS:
+        if dist > self._current_radius:
             self._marker_out()
             return
 
-        # 检查是否完成
+        # 完成
         if self._elapsed >= self.SURVIVAL_TIME:
             self._marker_success()
             return
 
-        # 倒计时变红
+        # 最后5秒状态变红
         if self._elapsed >= self.SURVIVAL_TIME - 5:
             self.canvas.itemconfig(self._status_id, fill="#cc0000")
 
