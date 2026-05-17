@@ -12,6 +12,9 @@ import math
 class MinigameBase:
     """小游戏抽象基类。每个小游戏拥有独立的 Canvas。"""
 
+    HELP_TITLE = "任务"
+    HELP_LINES = []  # 子类覆写：说明文案列表
+
     def __init__(self, parent: tk.Frame):
         self.parent = parent
         self.canvas = tk.Canvas(
@@ -30,7 +33,7 @@ class MinigameBase:
 
     def start(self):
         self._running = True
-        self._on_start()
+        self._show_help()
 
     def stop(self):
         self._running = False
@@ -43,6 +46,47 @@ class MinigameBase:
         if self.canvas and self.canvas.winfo_exists():
             self.canvas.destroy()
         self.canvas = None
+
+    # ---- 帮助系统 ----
+
+    def _show_help(self):
+        """绘制任务说明，等待双击后进入游戏"""
+        self.canvas.delete("all")
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+        if w < 50: w = 680
+        if h < 50: h = 520
+        cx, cy = w // 2, h // 2
+
+        self.canvas.create_text(cx, cy - 100,
+                                text=self.HELP_TITLE,
+                                fill="#e8e8e8",
+                                font=("Microsoft YaHei", 16, "bold"))
+        y = cy - 40
+        for line in self.HELP_LINES:
+            self.canvas.create_text(cx, y,
+                                    text=line,
+                                    fill="#cccccc",
+                                    font=("Microsoft YaHei", 11),
+                                    justify=tk.CENTER)
+            y += 32
+        self.canvas.create_text(cx, h - 50,
+                                text="双击鼠标或按空格键开始任务",
+                                fill="#666666",
+                                font=("Microsoft YaHei", 9))
+        self.canvas.bind("<Double-Button-1>", self._on_help_dismiss)
+        self.parent.winfo_toplevel().bind("<space>", self._on_help_space)
+
+    def _on_help_space(self, event=None):
+        if not self._running:
+            return
+        self._on_help_dismiss(None)
+
+    def _on_help_dismiss(self, event):
+        self.canvas.unbind("<Double-Button-1>")
+        self.parent.winfo_toplevel().unbind("<space>")
+        self.canvas.delete("all")
+        self._on_start()
 
     # ---- 子类覆写 ----
 
@@ -66,6 +110,14 @@ class MinigameBase:
 
 class MG1_PowerConnect(MinigameBase):
     """配电连线：左端子→中继点→右端子，亮灭灯循环干扰。"""
+
+    HELP_TITLE = "配电设备连线任务"
+    HELP_LINES = [
+        "1、左侧端子→中继点→右侧端子，按颜色配对连线",
+        "2、灯光会周期性熄灭，灭灯时靠记忆操作",
+        "3、36秒内完成全部6组配对即为成功",
+        "4、已配对完成的线路不受灭灯影响",
+    ]
 
     PAIRS = [
         ("主线路 A", "#cc0000"),
@@ -506,6 +558,14 @@ class MG1_PowerConnect(MinigameBase):
 class MG2_SolarReaction(MinigameBase):
     """太阳能反应测试：黄点命中/蓝点避开，光点缩小+移动。"""
 
+    HELP_TITLE = "太阳能信息收集任务"
+    HELP_LINES = [
+        "1、点击黄色光点收集信息并加分",
+        "2、点到蓝色干扰点会被扣分",
+        "3、收集分数达到6则任务成功，否则失败",
+        "4、光点会缩小和移动，注意把握时机",
+    ]
+
     TARGET_HITS = 6     # B3降档
     TOTAL_FLASHES = 12  # B3降档
     FLASH_DURATION = 900   # 光点存活 ms
@@ -823,6 +883,14 @@ class MG2_SolarReaction(MinigameBase):
 class MG3_PlatformBalance(MinigameBase):
     """持续点击保持光标稳定在中心区域。B+C难度：随机阵风+收缩安全区。"""
 
+    HELP_TITLE = "直升机平台平衡任务"
+    HELP_LINES = [
+        "1、连续点击/空格键将光标推向中心安全区",
+        "2、光标漂出安全区则平台失衡，任务失败",
+        "3、20秒内坚持在区域内即为成功",
+        "4、注意随机强风（红色方向提示），安全区后期会缩小",
+    ]
+
     SURVIVAL_TIME = 20
     DRIFT_SPEED = 2.0        # 基础漂移速度
     ZONE_RADIUS_START = 100  # 安全区初始半径
@@ -1056,6 +1124,14 @@ class MG3_PlatformBalance(MinigameBase):
 # MG4-A · 海鸟躲避（第4章 D9）—— B4 重写：25s计时+红鸟+归正+头骨
 # ============================================================
 class MG4A_SeabirdDodge(MinigameBase):
+    HELP_TITLE = "海鸟干扰规避任务"
+    HELP_LINES = [
+        "1、移动鼠标躲避飞来的海鸟",
+        "2、灰色海鸟为正速，红色海鸟速度2.5倍",
+        "3、被击中≤4次且坚持25秒即为成功",
+        "4、开局鼠标归正，每次被击中后也会归正",
+    ]
+
     SURVIVAL_TIME = 25     # B4: 坚持 25 秒
     MAX_HITS = 4           # B4: 被击中 ≤4 次即胜利
     BIRD_COUNT = 8         # 场上最大鸟数
@@ -1195,6 +1271,25 @@ class MG4A_SeabirdDodge(MinigameBase):
 
 class MG4B5_DarkCircuit(MinigameBase):
     """复合小游戏：上屏配电连线 + 下屏暗红收缩能量条。两屏皆胜→整体通关。"""
+
+    HELP_TITLE = "紧急供电重启任务"
+    HELP_LINES = [
+        "1、上屏完成配电连线（同'配电设备连线任务'）",
+        "2、下屏躲避黑暗收缩，点击面板边缘将其推回",
+        "3、能量条归零则收缩加速，过热4秒冷却",
+        "4、上下两屏皆胜则任务成功",
+    ]
+
+    def _show_help(self):
+        if self.TIME_LIMIT == 45:
+            self.HELP_TITLE = "最终供电重启任务"
+            self.HELP_LINES = [
+                "1、上屏完成配电连线（同'配电设备连线任务'）",
+                "2、下屏躲避黑暗收缩，点击面板边缘将其推回",
+                "3、能量条归零则收缩加速，过热4秒冷却",
+                "4、45秒时限，上下两屏皆胜则任务成功",
+            ]
+        super()._show_help()
 
     # — 配电部分 —
     PAIRS = [
