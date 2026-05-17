@@ -1332,7 +1332,7 @@ class MG4B5_DarkCircuit(MinigameBase):
                 "1、上屏完成配电连线（同'配电设备连线任务'）",
                 "2、下屏躲避黑暗收缩，点击面板边缘将其推回",
                 "3、能量条归零则收缩加速，过热4秒冷却",
-                "4、45秒时限，上下两屏皆胜则任务成功",
+                "4、90秒时限，上下两屏皆胜则任务成功",
             ]
         self._build_ui()
         self._bind_events()
@@ -1357,7 +1357,7 @@ class MG4B5_DarkCircuit(MinigameBase):
     OVERHEAT_COOLDOWN = 4   # 过热冷却秒数
     SHRINK_BASE = 0.0061     # 基础收缩速度/帧（0.0068×0.9），能量归零时×3
 
-    TIME_LIMIT = 50
+    TIME_LIMIT = 90
 
     def __init__(self, parent: tk.Frame):
         super().__init__(parent)

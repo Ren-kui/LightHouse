@@ -637,7 +637,7 @@ class Game:
         # MG5 同上，时间压缩至45秒
         if mg_name == "MG5":
             self._mg_instance = MG4B5_DarkCircuit(self.window.minigame_area)
-            self._mg_instance.TIME_LIMIT = 45
+            self._mg_instance.TIME_LIMIT = 90
             self._mg_instance.set_complete_callback(self._on_minigame_complete)
             self.window.show_minigame()
             self._mg_instance.start()
@@ -670,7 +670,8 @@ class Game:
         # if not success and mg_name in ("MG4A", "MG4B", "MG5"):
         #     self.sound_mgr.play("metal_creak")
 
-        self._auto_save()
+        if success:
+            self._auto_save()  # 仅成功时存档，死亡不覆盖前置存档
         self._display_node()
 
     def cmd_save(self):
