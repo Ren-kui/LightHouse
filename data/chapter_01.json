@@ -39,7 +39,7 @@
           "label": "先熟悉一下灯塔每一层",
           "next_node": "ch01_explore",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": 0,
             "trust": -1,
             "survival_will": 0,
@@ -188,7 +188,7 @@
           "label": "把这个疑问藏在心里，开始整理自己的行李",
           "next_node": "ch01_evening",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": 0,
             "trust": 0,
             "survival_will": 0,

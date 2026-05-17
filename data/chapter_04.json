@@ -21,7 +21,7 @@
         {
           "label": "不说话——他今天已经比过去七天都多了",
           "next_node": "ch04_zhang_hide",
-          "effects": { "trust": -1, "survival_will": 1, "sanity": 0, "curiosity": 0, "loyalty": 0 },
+          "effects": { "trust": -1, "survival_will": 1, "sanity": 0, "curiosity": -1, "loyalty": 0 },
           "conditions": null,
           "multi_click": null
         }
@@ -133,7 +133,7 @@
           "label": "跟着父亲走——你想听他再说下去",
           "important": true,
           "next_node": "ch04_dream_follow",
-          "effects": { "curiosity": 2, "sanity": -2, "trust": 0, "survival_will": 0, "loyalty": 0 },
+          "effects": { "curiosity": 1, "sanity": -2, "trust": 0, "survival_will": -1, "loyalty": 0 },
           "conditions": null,
           "multi_click": null
         },
@@ -141,7 +141,7 @@
           "label": "转身——这不是真的",
           "important": true,
           "next_node": "ch04_dream_awake",
-          "effects": { "survival_will": 2, "sanity": -1, "trust": 0, "curiosity": 0, "loyalty": 0 },
+          "effects": { "survival_will": 1, "sanity": -1, "trust": 0, "curiosity": 0, "loyalty": 0 },
           "conditions": null,
           "multi_click": null
         }
@@ -292,6 +292,13 @@
           "label": "\"我们一起！\"——和他一起往四楼跑",
           "next_node": "ch04_darkness",
           "effects": { "trust": 1, "survival_will": 1, "sanity": 0, "curiosity": 0, "loyalty": 0 },
+          "conditions": null,
+          "multi_click": null
+        },
+        {
+          "label": "在操作间多看张海生一眼——确认他还在这里",
+          "next_node": "ch04_darkness",
+          "effects": { "loyalty": 1, "survival_will": 0, "sanity": 0, "curiosity": 0, "trust": 0 },
           "conditions": null,
           "multi_click": null
         }

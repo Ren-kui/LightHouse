@@ -16,7 +16,7 @@
             "curiosity": 0,
             "sanity": 0,
             "trust": 0,
-            "survival_will": 2,
+            "survival_will": -1,
             "loyalty": 1
           },
           "conditions": null,
@@ -60,7 +60,7 @@
           "failure_effects": {
             "curiosity": 0,
             "sanity": -1,
-            "trust": 0,
+            "trust": -1,
             "survival_will": 0,
             "loyalty": 0
           }
@@ -197,7 +197,7 @@
           "success_effects": { "trust": 1 },
           "success_flags": { "free_task_mg2": true },
           "failure_node": "ch03_free_mg2_done",
-          "failure_effects": {}
+          "failure_effects": { "trust": -1 }
         }
       ],
       "mood": "tension"
@@ -245,7 +245,7 @@
           "label": "打开铁门，沿梯子往下走",
           "next_node": "ch03_storage_found",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -1,
             "trust": 0,
             "survival_will": 1,
@@ -267,7 +267,7 @@
           "label": "仔细阅读日记的第一段",
           "next_node": "ch03_d5_search",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -1,
             "trust": 0,
             "survival_will": 0,
@@ -290,7 +290,7 @@
           "important": true,
           "next_node": "ch03_basement_find",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -1,
             "trust": 0,
             "survival_will": 0,
@@ -339,7 +339,7 @@
           "important": true,
           "next_node": "ch03_basement_enter",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -2,
             "trust": 0,
             "survival_will": 0,
@@ -381,7 +381,7 @@
           "label": "爬回储藏室，合上所有东西",
           "next_node": "ch03_d5_evening",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -2,
             "trust": 0,
             "survival_will": 0,
@@ -490,7 +490,7 @@
           "label": "自己一个人再下去——有些事需要独自面对",
           "next_node": "ch03_d6_alone",
           "effects": {
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -1,
             "trust": -1,
             "survival_will": 1,

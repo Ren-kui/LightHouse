@@ -21,6 +21,19 @@
           },
           "conditions": null,
           "multi_click": null
+        },
+        {
+          "label": "把撕页从桌上推回去——这是他藏了十年的东西",
+          "important": true,
+          "next_node": "ch05_talk_zhang",
+          "effects": {
+            "trust": 0,
+            "loyalty": 1,
+            "curiosity": -1,
+            "sanity": 0
+          },
+          "conditions": null,
+          "multi_click": null
         }
       ]
     },
@@ -38,7 +51,7 @@
           "effects": {
             "trust": 1,
             "loyalty": 1,
-            "curiosity": 2,
+            "curiosity": 1,
             "sanity": -1
           },
           "set_flags": { "found_diary_page": true },
@@ -54,7 +67,8 @@
           "next_node": "ch05_diary_hide",
           "effects": {
             "trust": -1,
-            "survival_will": 1
+            "survival_will": 1,
+            "curiosity": -1
           },
           "conditions": null,
           "multi_click": null
@@ -172,7 +186,7 @@
           "label": "记住每一层的逃生路线——做好准备",
           "next_node": "ch05_d12_start",
           "effects": {
-            "survival_will": 2,
+            "survival_will": 1,
             "sanity": -1,
             "trust": -1
           },
@@ -216,7 +230,7 @@
           "important": true,
           "next_node": "ch05_mg5_solo",
           "effects": {
-            "survival_will": 2,
+            "survival_will": 1,
             "sanity": -1,
             "trust": -1,
             "loyalty": -1
