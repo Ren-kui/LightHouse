@@ -165,8 +165,8 @@
 | 4 | **A** | 疯狂 · 独自对话 | curiosity≥7 + sanity≤3 + (trust≥5 或 loyalty≥3) | 无（evil_wood_carving 可助推 sanity） | 高好奇但保留人际关系 |
 | 5 | **E** | 提前逃离 · 永不知答案 | survival_will≥8 + sanity≤4 + trust≤4（ch05 特殊节点） | 无 | 高生存 + 低信任 |
 | 6 | **B** | 一起逃离 · 他断开关 | curiosity≥6 + sanity≥6 + trust≥7 + loyalty≥4 | pen（纯黑钢笔） | 高好奇但避开伤害理智 |
-| 7 | **D** | 被杀 · 离开前一夜 | curiosity≤3 + sanity≥6 + trust≤3 + loyalty≤2 | zhang_textbook（张望潮物理课本） | 保守孤立（必须在 C 前判定） |
-| 8 | **C** | 平安离开 · 什么也没意识到 | curiosity≤3 + sanity≥6 | 无 | 全程保守 |
+| 7 | **D** | 被杀 · 离开前一夜 | curiosity≤3 + sanity≥6 + trust≤3 + loyalty≤2 | zhang_textbook（张望潮物理课本） | 保守孤立 |
+| 8 | **C** | 平安离开 · 什么也没意识到 | **无（万能结局——所有条件不满足时默认进入）** | 无 | 兜底结局 |
 
 ### 物品体系
 

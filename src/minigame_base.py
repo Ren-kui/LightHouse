@@ -1627,6 +1627,11 @@ class MG4B5_DarkCircuit(MinigameBase):
                     if self._left_terminals[self._selected_left][1] == color:
                         self._selected_relay = i
                         self._highlight_relay(i)
+                        # 画半程虚线：左→中继
+                        lx2 = self._left_terminals[self._selected_left][8]
+                        ly = self._left_terminals[self._selected_left][3]
+                        self.canvas.create_line(lx2, ly, rx, ry,
+                            fill=color, width=2, dash=(4, 4))
                         return
                     else:
                         self._flash_relay_wrong(i)
@@ -1671,6 +1676,17 @@ class MG4B5_DarkCircuit(MinigameBase):
         self.canvas.itemconfig(lrect, fill="#002200", outline="#00aa00")
         self.canvas.itemconfig(r_relay, fill="#002200", outline="#00aa00")
         self.canvas.itemconfig(rrect, fill="#002200", outline="#00aa00")
+        # 画连线：左→中继→右
+        lx = self._left_terminals[li][2] + 30
+        ly = self._left_terminals[li][3]
+        rx = self._relays[ri_idx][1]
+        ry = self._relays[ri_idx][2]
+        color = self._left_terminals[li][1]
+        self.canvas.create_line(lx, ly, rx, ry, fill=color, width=2)
+        self.canvas.create_line(rx, ry,
+            self._right_terminals[r_idx][2] - 30,
+            self._right_terminals[r_idx][3],
+            fill=color, width=2)
         if len(self._matched_left) == len(self.PAIRS):
             self._top_won = True
             self._stop_cycle()

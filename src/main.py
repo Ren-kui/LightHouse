@@ -405,7 +405,7 @@ class Game:
         self.window.update_panel_status(desc)
         # 日记：仅当天数变化时生成新快照，第一天不生成
         new_diary = False
-        if self.story.day > self._last_diary_day and self.story.day >= 2:
+        if self.story.day and self.story.day > self._last_diary_day and self.story.day >= 2:
             notes = self._get_diary_text()
             self._diary_snapshots[str(self.story.day)] = notes
             self.window.update_panel_notes(notes, day=self.story.day)
@@ -457,7 +457,7 @@ class Game:
             self._save_collection()
         # D14 日记（仅当玩家到达 D14 时）
         diary_text = ""
-        if self.story.day >= 14:
+        if self.story.day and self.story.day >= 14:
             diary_text = self._diary_snapshots.get("14", "")
         self.window.show_ending_screen(name, desc, diary_text)
         # 结局画面在点击后返回标题界面

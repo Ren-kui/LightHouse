@@ -68,8 +68,10 @@ class StoryEngine:
         self._last_node_id = self.current_node
         self.current_node = node_id
         n = self.nodes[node_id]
-        self.chapter = n.get("chapter", self.chapter)
-        self.day = n.get("day", self.day)
+        self.chapter = n.get("chapter") or self.chapter
+        d = n.get("day")
+        if d is not None:
+            self.day = d
         # 节点级 set_flags（到达节点时自动设置）
         node_flags = n.get("set_flags")
         if node_flags:
@@ -150,11 +152,8 @@ class StoryEngine:
         if self.item_mgr and self.item_mgr.has("zhang_textbook"):
             if c <= 3 and s >= 6 and t <= 3 and l <= 2:
                 return "D"
-        # 优先级 8: C 平安离开
-        if c <= 3 and s >= 6:
-            return "C"
-
-        return None
+        # 优先级 8: C 平安离开（万能结局——所有条件不满足时的默认结局）
+        return "C"
 
     def get_available_choices(self) -> list:
         n = self.get_current_node()

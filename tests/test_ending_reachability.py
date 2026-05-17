@@ -237,14 +237,15 @@ class TestEndingReachability(unittest.TestCase):
         self.assertEqual(self.st.check_ending(), "C")
 
     def test_ending_C_blocked_by_curiosity_high(self):
+        """C 为万能结局——curiosity 高不会阻止 C"""
         self._reset()
-        self._set_vars(curiosity=4, sanity=6)
-        self.assertNotEqual(self.st.check_ending(), "C")
+        self._set_vars(curiosity=9, sanity=5, trust=5, loyalty=3)
+        self.assertEqual(self.st.check_ending(), "C")
 
     def test_ending_C_blocked_by_sanity_low(self):
         self._reset()
-        self._set_vars(curiosity=3, sanity=5)
-        self.assertNotEqual(self.st.check_ending(), "C")
+        self._set_vars(curiosity=5, sanity=3, trust=5, loyalty=3)
+        self.assertEqual(self.st.check_ending(), "C")
 
     # ---- 优先级测试 ----
 
@@ -278,10 +279,10 @@ class TestEndingReachability(unittest.TestCase):
         self.assertEqual(self.st.check_ending(), "D")
 
     def test_no_ending(self):
-        """中间状态不触发任何结局"""
+        """C 为万能结局——所有中间状态均进入 C，不再有 None"""
         self._reset()
         self._set_vars(curiosity=5, sanity=5, trust=5, loyalty=3)
-        self.assertIsNone(self.st.check_ending())
+        self.assertEqual(self.st.check_ending(), "C")
 
     # ---- 结局节点存在性 ----
 

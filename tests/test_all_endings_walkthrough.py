@@ -141,14 +141,18 @@ class TestAllEndingsWalkthrough(unittest.TestCase):
         self.assertEqual(self.st.check_ending(), "C",
             "c≤3,s≥6,t≤3,l≤2无课本 → C（不是 D）")
 
-    # ===== 结局 C：平安离开 =====
+    # ===== 结局 C：平安离开（万能结局） =====
+
+    def test_ending_C_default(self):
+        """C 为万能结局——任意变量组合下，若无其他结局触发，默认进入 C"""
+        self._goto_ch06_check()
+        self.assertEqual(self.st.check_ending(), "C",
+            "C 是万能结局，任何条件下默认进入")
 
     def test_ending_C_path(self):
-        # c≤3,s≥6，无需物品
+        """C 仍可通过保守路径到达"""
         self.sm.change("curiosity", 3 - self.sm.get("curiosity"))
         self.sm.change("sanity", 6 - self.sm.get("sanity"))
-        self.sm.change("trust", 4 - self.sm.get("trust"))  # t>3 避开 D
-        self.sm.change("loyalty", 3 - self.sm.get("loyalty"))
         self._goto_ch06_check()
         self.assertEqual(self.st.check_ending(), "C",
             "c≤3,s≥6 → 结局 C")

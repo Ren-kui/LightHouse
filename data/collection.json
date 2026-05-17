@@ -52,9 +52,9 @@
     "C": {
       "name": "平安离开 · 什么也没意识到",
       "desc": "你平安地离开了。",
-      "var_conditions": "好奇心≤3 · 理智≥6",
+      "var_conditions": "无（万能结局——所有条件不满足时默认进入）",
       "item_conditions": "无",
-      "route": "全程保守 + 不偷课本 → D13 ch06_ending_check 自动判定"
+      "route": "任何路径 → D13 ch06_ending_check 自动判定 → 若无其他结局触发则进入此结局"
     }
   }
 }

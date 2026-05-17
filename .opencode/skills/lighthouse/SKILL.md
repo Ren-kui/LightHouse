@@ -5,7 +5,7 @@ description: Use ONLY when working on the Lighthouse text adventure game project
 
 # Lighthouse 游戏开发规范（摘要）
 
-> **当前状态**：M0~M6 ✅。M7 🔄 85%。详见 `docs/progress.md`。
+> **当前状态**：M0~M8 ✅ 全部完成。详见 `docs/progress.md`。
 >
 > 本文档为项目规则的**精简摘要**。冲突时以 `docs/` 下各 MD 文件原文为准。动态内容（进度/Bug/决策）不要在此修改——去对应 MD 改。
 
@@ -65,7 +65,7 @@ description: Use ONLY when working on the Lighthouse text adventure game project
 | 5 | E | 逃离 | sw≥8,s≤4,t≤4(ch05) | 无 |
 | 6 | B | 一起逃离 | c≥6,s≥6,t≥7,l≥4 | pen |
 | 7 | D | 被杀 | c≤3,s≥6,t≤3,l≤2 | zhang_textbook |
-| 8 | C | 平安离开 | c≤3,s≥6 | 无 |
+| 8 | C | 平安离开 | 无（万能结局） | 无 |
 
 ### 物品（`data/items.json` + `src/item_manager.py`）
 
@@ -78,6 +78,7 @@ description: Use ONLY when working on the Lighthouse text adventure game project
 | evil_wood_carving | 邪恶木雕 | sanity-2 | ch04 梦境醒·选项2（互斥） |
 | pen | 纯黑钢笔 | — | 闲逛全清 |
 | zhang_textbook | 张望潮物理课本 | — | ch03 夹层(loyalty≤2) |
+| wangchao_drawing | 张望潮的水彩画 | curiosity+1, trust-1 | ch04 D8 重返抽屉 |
 
 ---
 

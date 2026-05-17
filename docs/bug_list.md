@@ -52,6 +52,8 @@
 | B034 | 黑暗小游戏死亡结局未走结局画面——`ch04_darkness_death` 和 `ch05_mg5_death` 的 `auto_next` 为 null，未路由到 `ch06_ending_death`（`is_ending_chain`），导致死亡后卡在黑屏。两处 `auto_next` 改为 `"ch06_ending_death"` 修复 | P0 | 老板 | FD | 2026-05-15 | 2026-05-15 |
 | B035 | 点击剧情文本偶尔跳行——正常翻页路径中 `_show_prompt` 留 `\n\n` → `_remove_prompt` 仅删提示行（`end-1c`）→ `_typewrite_current_chunk` 再加 `\n\n`，累计双倍行距；快进路径仅单倍行距，两条路径不一致。`_remove_prompt` 改为 `end-2l` 同时删除前导空行修复 | P1 | FD | FD | 2026-05-16 | 2026-05-16 |
 | B036 | GM 面板重构时 `_gm_node_canvas` 创建代码误删，Ctrl+Shift+G 触发 `AttributeError` 崩溃。补回完整节点画布+滚动条代码修复 | P0 | FD | FD | 2026-05-17 | 2026-05-17 |
+| B037 | 死亡结局触发 `TypeError: '>' not supported between NoneType and int`——`ch06_ending_death` JSON 中 `day: null` 被读为 `None`，`dict.get("day", default)` 因 key 存在返回 None 而非默认值。JSON 改 `day:14` + 代码 `is not None` 判空修复 | P0 | FD | FD | 2026-05-17 | 2026-05-17 |
+| B038 | 黑暗小游戏死亡后读自动存档仍为死亡——`_auto_save()` 被调用两次（`cmd_choice` 前置 + `_on_minigame_complete` 后置），第二次覆盖了第一次的正确存档。`_on_minigame_complete` 改为 `if success:` 才存档修复 | P0 | FD | FD | 2026-05-17 | 2026-05-17 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |
