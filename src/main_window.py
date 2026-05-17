@@ -1261,6 +1261,21 @@ class MainWindow:
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, padx=pad, pady=(8, 2))
         node_container = tk.Frame(self._gm_inner, bg=self.COLORS["panel_bg"])
         node_container.pack(fill=tk.BOTH, expand=True, padx=pad)
+        self._gm_node_canvas = tk.Canvas(node_container, bg=self.COLORS["panel_bg"],
+                                         highlightthickness=0, bd=0, width=240)
+        scrollbar = tk.Scrollbar(node_container, orient=tk.VERTICAL,
+                                 command=self._gm_node_canvas.yview)
+        self._gm_node_list = tk.Frame(self._gm_node_canvas, bg=self.COLORS["panel_bg"])
+        self._gm_node_list.bind("<Configure>",
+            lambda e: self._gm_node_canvas.configure(scrollregion=self._gm_node_canvas.bbox("all")))
+        self._gm_node_canvas.create_window((0, 0), window=self._gm_node_list, anchor=tk.NW)
+        self._gm_node_canvas.configure(yscrollcommand=scrollbar.set, height=160)
+        self._gm_node_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self._gm_node_canvas.bind("<Enter>", lambda e: self._gm_node_canvas.bind_all("<MouseWheel>",
+            lambda ev: (self._gm_node_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")
+                        if self._gm_node_canvas and self._gm_node_canvas.winfo_exists() else None)))
+        self._gm_node_canvas.bind("<Leave>", lambda e: self._gm_node_canvas.unbind_all("<MouseWheel>"))
 
         # —— 变量调节 ——
         tk.Label(self._gm_inner, text="变量调整",
