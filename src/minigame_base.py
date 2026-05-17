@@ -14,6 +14,7 @@ class MinigameBase:
 
     HELP_TITLE = "任务"
     HELP_LINES = []  # 子类覆写：说明文案列表
+    HELP_WARNING = ""  # 子类覆写：红色警告文本
 
     def __init__(self, parent: tk.Frame):
         self.parent = parent
@@ -87,6 +88,13 @@ class MinigameBase:
                text="双击鼠标或按空格键开始任务",
                fill="#666666", font=("Microsoft YaHei", 9))
         self._help_items.append(t)
+
+        # 警告文本（如死亡警告）
+        if self.HELP_WARNING:
+            t = self.canvas.create_text(cx, cy + 150,
+                   text=self.HELP_WARNING,
+                   fill="#cc0000", font=("Microsoft YaHei", 12, "bold"))
+            self._help_items.append(t)
 
         # 绑定关闭事件
         self.canvas.bind("<Double-Button-1>", self._dismiss_help)
@@ -1309,6 +1317,7 @@ class MG4B5_DarkCircuit(MinigameBase):
     """复合小游戏：上屏配电连线 + 下屏暗红收缩能量条。两屏皆胜→整体通关。"""
 
     HELP_TITLE = "紧急供电重启任务"
+    HELP_WARNING = "这次如果失败……会死！"
     HELP_LINES = [
         "1、上屏完成配电连线（同'配电设备连线任务'）",
         "2、下屏躲避黑暗收缩，点击面板边缘将其推回",
@@ -1585,7 +1594,7 @@ class MG4B5_DarkCircuit(MinigameBase):
         self._timer_text = self.canvas.create_text(
             w // 2, h - 8,
             text="剩余: {}秒".format(self._time_left),
-            fill="#cc6600", font=("Microsoft YaHei", 8, "bold"))
+            fill="#cc6600", font=("Microsoft YaHei", 10, "bold"))
 
         # 通用提示
         self._hint_id = self.canvas.create_text(

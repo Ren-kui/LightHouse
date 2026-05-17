@@ -314,7 +314,8 @@ class Game:
             return
 
         if isinstance(result, dict) and result.get("type") == "minigame":
-            # 触发小游戏
+            # 触发小游戏——先自动存档（防止失败进入死亡结局导致坏档）
+            self._auto_save()
             self._mg_info = result
             self._start_minigame(result["minigame"])
             return
