@@ -52,6 +52,7 @@ class MainWindow:
         self.on_menu_continue = None
         self.on_menu_collection = None
         self.on_gm_unlock_collection = None
+        self.on_gm_reset_collection = None
         self.on_choice_made = None
         self.on_text_complete = None
         self.on_toggle_panel = None
@@ -1215,64 +1216,68 @@ class MainWindow:
             self._gm_frame = None
 
     def _build_gm_panel_content(self):
-        """构建 GM 面板内容：加载章节 + 节点列表 + 变量调节 + 预设"""
+        """构建 GM 面板内容：可滚动区域 + 加载章节 + 节点列表 + 变量调节 + 预设"""
         pad = 12
-        title = tk.Label(self._gm_frame, text="GM 调试",
+        # —— 外层可滚动画布 ——
+        self._gm_canvas = tk.Canvas(self._gm_frame, bg=self.COLORS["panel_bg"],
+                                     highlightthickness=0, bd=0)
+        gm_scroll = tk.Scrollbar(self._gm_frame, orient=tk.VERTICAL,
+                                  command=self._gm_canvas.yview)
+        self._gm_inner = tk.Frame(self._gm_canvas, bg=self.COLORS["panel_bg"])
+        self._gm_inner.bind("<Configure>",
+            lambda e: self._gm_canvas.configure(scrollregion=self._gm_canvas.bbox("all")))
+        self._gm_canvas.create_window((0, 0), window=self._gm_inner, anchor=tk.NW, width=self._gm_frame.winfo_width() - 16)
+        self._gm_canvas.configure(yscrollcommand=gm_scroll.set)
+        self._gm_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        gm_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        # 滚轮绑定（进入 GM 面板时生效）
+        def _gm_scroll(ev):
+            if self._gm_canvas and self._gm_canvas.winfo_exists():
+                self._gm_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")
+        self._gm_canvas.bind("<Enter>", lambda e: self._gm_frame.bind_all("<MouseWheel>", _gm_scroll))
+        self._gm_canvas.bind("<Leave>", lambda e: self._gm_frame.unbind_all("<MouseWheel>"))
+
+        title = tk.Label(self._gm_inner, text="GM 调试",
                           font=("Microsoft YaHei", 12, "bold"),
                           fg="#cc6600", bg=self.COLORS["panel_bg"])
         title.pack(anchor=tk.W, padx=pad, pady=(12, 4))
 
         # —— 音效状态行（M5 GM） ——
-        self._gm_sound_status = tk.Label(self._gm_frame, text="",
+        self._gm_sound_status = tk.Label(self._gm_inner, text="",
                                           font=("Microsoft YaHei", 9, "bold"),
                                           fg="#00cc00", bg=self.COLORS["panel_bg"])
         self._gm_sound_status.pack(anchor=tk.W, padx=pad, pady=(0, 4))
 
         # —— 加载章节 ——
-        tk.Label(self._gm_frame, text="加载章节",
+        tk.Label(self._gm_inner, text="加载章节",
                  font=("Microsoft YaHei", 9, "bold"),
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, padx=pad, pady=(6, 2))
-        self._gm_chapter_btn_frame = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
+        self._gm_chapter_btn_frame = tk.Frame(self._gm_inner, bg=self.COLORS["panel_bg"])
         self._gm_chapter_btn_frame.pack(fill=tk.X, padx=pad)
 
         # —— 节点跳转 ——
-        tk.Label(self._gm_frame, text="节点跳转",
+        tk.Label(self._gm_inner, text="节点跳转",
                  font=("Microsoft YaHei", 9, "bold"),
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, padx=pad, pady=(8, 2))
-        node_container = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
+        node_container = tk.Frame(self._gm_inner, bg=self.COLORS["panel_bg"])
         node_container.pack(fill=tk.BOTH, expand=True, padx=pad)
-        self._gm_node_canvas = tk.Canvas(node_container, bg=self.COLORS["panel_bg"],
-                                         highlightthickness=0, bd=0, width=240)
-        scrollbar = tk.Scrollbar(node_container, orient=tk.VERTICAL,
-                                 command=self._gm_node_canvas.yview)
-        self._gm_node_list = tk.Frame(self._gm_node_canvas, bg=self.COLORS["panel_bg"])
-        self._gm_node_list.bind("<Configure>",
-            lambda e: self._gm_node_canvas.configure(scrollregion=self._gm_node_canvas.bbox("all")))
-        self._gm_node_canvas.create_window((0, 0), window=self._gm_node_list, anchor=tk.NW)
-        self._gm_node_canvas.configure(yscrollcommand=scrollbar.set, height=180)
-        self._gm_node_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self._gm_node_canvas.bind("<Enter>", lambda e: self._gm_node_canvas.bind_all("<MouseWheel>",
-            lambda ev: (self._gm_node_canvas.yview_scroll(int(-1 * (ev.delta / 120)), "units")
-                        if self._gm_node_canvas and self._gm_node_canvas.winfo_exists() else None)))
-        self._gm_node_canvas.bind("<Leave>", lambda e: self._gm_node_canvas.unbind_all("<MouseWheel>"))
 
         # —— 变量调节 ——
-        tk.Label(self._gm_frame, text="变量调整",
+        tk.Label(self._gm_inner, text="变量调整",
                  font=("Microsoft YaHei", 9, "bold"),
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, padx=pad, pady=(8, 2))
-        self._gm_var_frame = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
+        self._gm_var_frame = tk.Frame(self._gm_inner, bg=self.COLORS["panel_bg"])
         self._gm_var_frame.pack(fill=tk.X, padx=pad)
 
         # —— 预设组合 ——
-        tk.Label(self._gm_frame, text="预设组合",
+        tk.Label(self._gm_inner, text="预设组合",
                  font=("Microsoft YaHei", 9, "bold"),
                  fg="#555555", bg=self.COLORS["panel_bg"]).pack(anchor=tk.W, padx=pad, pady=(8, 2))
-        self._gm_preset_frame = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
+        self._gm_preset_frame = tk.Frame(self._gm_inner, bg=self.COLORS["panel_bg"])
         self._gm_preset_frame.pack(fill=tk.X, padx=pad)
 
         # —— GM 工具按钮 ——
-        btn_frame = tk.Frame(self._gm_frame, bg=self.COLORS["panel_bg"])
+        btn_frame = tk.Frame(self._gm_inner, bg=self.COLORS["panel_bg"])
         btn_frame.pack(fill=tk.X, padx=pad, pady=(6, 0))
         self._gm_unlock_btn = tk.Label(btn_frame, text="▸ 解锁全部结局收集",
                font=("Microsoft YaHei", 9),
@@ -1283,6 +1288,16 @@ class MainWindow:
         self._gm_unlock_btn.bind("<Leave>", lambda e: self._gm_unlock_btn.config(fg=self.COLORS["dim"]))
         self._gm_unlock_btn.bind("<Button-1>",
             lambda e: self.on_gm_unlock_collection and self.on_gm_unlock_collection())
+
+        self._gm_reset_btn = tk.Label(btn_frame, text="▸ 重置全部结局收集",
+               font=("Microsoft YaHei", 9),
+               fg=self.COLORS["dim"], bg=self.COLORS["panel_bg"],
+               cursor="hand2", anchor=tk.W)
+        self._gm_reset_btn.pack(anchor=tk.W, pady=(2, 0))
+        self._gm_reset_btn.bind("<Enter>", lambda e: self._gm_reset_btn.config(fg=self.COLORS["accent"]))
+        self._gm_reset_btn.bind("<Leave>", lambda e: self._gm_reset_btn.config(fg=self.COLORS["dim"]))
+        self._gm_reset_btn.bind("<Button-1>",
+            lambda e: self.on_gm_reset_collection and self.on_gm_reset_collection())
 
     def refresh_gm_panel(self, nodes_ordered: list, current_node: str, variables: dict,
                           presets: list, chapters_loaded: list, all_chapters: list,

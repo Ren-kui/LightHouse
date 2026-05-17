@@ -103,6 +103,7 @@ class Game:
             self.window.on_gm_open = self._refresh_gm_panel
             self.window.on_gm_load_chapter = self.cmd_gm_load_chapter
             self.window.on_gm_unlock_collection = self.cmd_gm_unlock_collection
+            self.window.on_gm_reset_collection = self.cmd_gm_reset_collection
 
         # GD 预设组合（GM 栏 v2 · 8 结局）
         self.GM_PRESETS = [
@@ -609,6 +610,12 @@ class Game:
         self._unlocked_endings = list(all_endings)
         self._save_collection()
         self.window.flash_save_status("已解锁全部 8 结局收集")
+
+    def cmd_gm_reset_collection(self):
+        """GM：重置全部结局收集"""
+        self._unlocked_endings = []
+        self._save_collection()
+        self.window.flash_save_status("已重置全部结局收集")
 
     # ========== 小游戏 ==========
 
