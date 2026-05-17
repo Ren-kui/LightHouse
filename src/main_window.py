@@ -1474,66 +1474,65 @@ class MainWindow:
     # ========== 结局收集界面 ==========
 
     def show_collection_screen(self, collection_data: dict):
-        """结局收集主界面：4×2 格子，已解锁白色/可点击，未解锁灰色/不可点击"""
+        """结局收集主界面：4×2 格子，已解锁白色可点击，未解锁灰色"""
         self._in_title_screen = False
         self.clear_choices()
         self.text_area.config(state=tk.NORMAL)
         self.text_area.delete("1.0", tk.END)
         self.text_area.tag_configure("col_title", font=("Microsoft YaHei", 16, "bold"),
                                      foreground="#e8e8e8", justify=tk.CENTER)
-        self.text_area.tag_configure("col_desc", font=("Microsoft YaHei", 9),
-                                     foreground="#555555", justify=tk.CENTER)
-        self.text_area.tag_configure("col_unlocked", font=("Microsoft YaHei", 11, "bold"),
-                                     foreground="#e8e8e8", background="#1a1a1a",
-                                     justify=tk.CENTER, lmargin1=20, lmargin2=20,
-                                     spacing1=6, spacing3=6)
-        self.text_area.tag_configure("col_locked", font=("Microsoft YaHei", 11),
-                                     foreground="#333333", background="#0a0a0a",
-                                     justify=tk.CENTER, lmargin1=20, lmargin2=20,
-                                     spacing1=6, spacing3=6)
         self.text_area.tag_configure("col_back", font=("Microsoft YaHei", 9),
                                      foreground="#888888", justify=tk.CENTER,
-                                     spacing1=20)
+                                     spacing1=16)
+        self.text_area.insert(tk.END, "\n\n")
+        self.text_area.insert(tk.END, "结局收集\n", "col_title")
+        self.text_area.insert(tk.END, "\n\n▼ 空格 / 回车返回标题\n\n", "col_back")
+        self.text_area.config(state=tk.DISABLED)
+        # 构建 4×2 可点击 grid
         endings = collection_data.get("endings", {})
         order = ["G", "death", "F", "A", "E", "B", "D", "C"]
         unlocked = collection_data.get("unlocked", [])
-
-        self.text_area.insert(tk.END, "\n\n")
-        self.text_area.insert(tk.END, "结局收集\n", "col_title")
-        self.text_area.insert(tk.END, "\n")
-
-        # 4×2 布局：每两个结局一行
+        for c in self.choice_frame.winfo_children():
+            c.destroy()
+        self._choice_rows = []
+        self._collection_endings = endings
+        self._collection_unlocked = unlocked
+        self._col_mode = "main"
         for row_idx in range(4):
-            line = ""
+            row = tk.Frame(self.choice_frame, bg=self.COLORS["bg"])
+            row.pack(fill=tk.X, pady=4)
+            self._choice_rows.append(row)
             for col_idx in range(2):
                 idx = row_idx * 2 + col_idx
                 if idx >= len(order):
                     break
                 eid = order[idx]
                 info = endings.get(eid, {})
-                if eid in unlocked:
-                    line += info.get("name", eid)
-                else:
-                    line += "？？？"
-                if col_idx == 0:
-                    line += "    │    "
-            # 判断用哪个 tag（取每行第一个结局的解锁状态）
-            first_eid = order[row_idx * 2]
-            tag = "col_unlocked" if first_eid in unlocked else "col_locked"
-            self.text_area.insert(tk.END, line + "\n", tag)
-        self.text_area.insert(tk.END, "\n")
-        self.text_area.insert(tk.END, "▼ 空格 / 回车返回    ▸ 点击已解锁结局查看详情\n", "col_back")
-        self.text_area.config(state=tk.DISABLED)
-        # 绑定回调
-        self._collection_data = collection_data
-        self._collection_unlocked = unlocked
-        self._collection_endings = endings
-        self._collection_order = order
-        self._col_mode = "main"
+                is_unlocked = eid in unlocked
+                text = info.get("name", eid) if is_unlocked else "？？？"
+                fg = self.COLORS["text"] if is_unlocked else "#333333"
+                cursor = "hand2" if is_unlocked else "arrow"
+                # 左右各放一个空白填充使两列居中
+                side_frame = tk.Frame(row, bg=self.COLORS["bg"])
+                side_frame.pack(side=tk.LEFT, expand=True, fill=tk.X)
+                lbl = tk.Label(side_frame, text=text,
+                              font=("Microsoft YaHei", 11, "bold"),
+                              fg=fg, bg=self.COLORS["bg"],
+                              cursor=cursor, anchor=tk.CENTER)
+                lbl.pack(expand=True)
+                if is_unlocked:
+                    lbl.bind("<Enter>", lambda e, l=lbl: l.config(fg=self.COLORS["accent"]))
+                    lbl.bind("<Leave>", lambda e, l=lbl, f=fg: l.config(fg=f))
+                    lbl.bind("<Button-1>", lambda e, eid=eid: self._on_collection_item(eid))
+
+    def _on_collection_item(self, ending_id: str):
+        if ending_id in self._collection_unlocked:
+            self.show_collection_detail(ending_id)
 
     def show_collection_detail(self, ending_id: str):
         """结局收集二级界面：路线+条件"""
         info = self._collection_endings.get(ending_id, {})
+        self.clear_choices()
         self.text_area.config(state=tk.NORMAL)
         self.text_area.delete("1.0", tk.END)
         self.text_area.tag_configure("col_det_name", font=("Microsoft YaHei", 18, "bold"),
@@ -1561,6 +1560,7 @@ class MainWindow:
         self.text_area.insert(tk.END, "▸ 返回收集列表    ▼ 空格返回标题\n", "col_det_back")
         self.text_area.config(state=tk.DISABLED)
         self._col_mode = "detail"
+        self._choice_rows = []  # 详情页无选择行，避免 clear_choices 误删
 
     def _on_collection_click(self, event):
         """处理结局收集界面的点击"""

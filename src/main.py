@@ -265,15 +265,9 @@ class Game:
         data = dict(self._collection_data)
         data["unlocked"] = list(self._unlocked_endings)
         self.window.show_collection_screen(data)
-        # 收集模式下点击 text_area 触发选择
-        self.window.text_area.unbind("<Button-1>")
-        self.window.text_area.bind("<Button-1>", lambda e: self.window._on_collection_click(e))
-        # 收集模式退出时返回标题
         self.window.on_text_complete = self._on_collection_return
 
     def _on_collection_return(self):
-        self.window.text_area.unbind("<Button-1>")
-        self.window.text_area.bind("<Button-1>", self.window._on_text_advance)
         self.window._col_mode = None
         self.window.on_text_complete = self._on_text_done
         self._fsm = "TITLE"
