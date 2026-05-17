@@ -51,6 +51,7 @@
 | B033 | 结局画面无法返回标题界面——`show_ending_screen` 后 `_chunks` 保留旧数据，`_on_text_advance` 发现 `_chunks` 非空但 `_chunk_idx` 已达末尾，直接 return 不触发回调。加 `_ending_screen` 标志+清空 `_chunks` 修复 | P0 | 老板 | FD | 2026-05-15 | 2026-05-15 |
 | B034 | 黑暗小游戏死亡结局未走结局画面——`ch04_darkness_death` 和 `ch05_mg5_death` 的 `auto_next` 为 null，未路由到 `ch06_ending_death`（`is_ending_chain`），导致死亡后卡在黑屏。两处 `auto_next` 改为 `"ch06_ending_death"` 修复 | P0 | 老板 | FD | 2026-05-15 | 2026-05-15 |
 | B035 | 点击剧情文本偶尔跳行——正常翻页路径中 `_show_prompt` 留 `\n\n` → `_remove_prompt` 仅删提示行（`end-1c`）→ `_typewrite_current_chunk` 再加 `\n\n`，累计双倍行距；快进路径仅单倍行距，两条路径不一致。`_remove_prompt` 改为 `end-2l` 同时删除前导空行修复 | P1 | FD | FD | 2026-05-16 | 2026-05-16 |
+| B036 | GM 面板重构时 `_gm_node_canvas` 创建代码误删，Ctrl+Shift+G 触发 `AttributeError` 崩溃。补回完整节点画布+滚动条代码修复 | P0 | FD | FD | 2026-05-17 | 2026-05-17 |
 
 |----|------|--------|--------|--------|------|----------|
 | — | — | — | — | — | — | — |
