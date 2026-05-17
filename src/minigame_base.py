@@ -25,6 +25,8 @@ class MinigameBase:
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self._running = False
+        self._gameplay_paused = False  # 帮助面板期间暂停游戏逻辑
+        self._help_items = []  # 帮助画布元素 ID 列表
         self._complete_callback = None
 
     def set_complete_callback(self, cb):
@@ -33,7 +35,9 @@ class MinigameBase:
 
     def start(self):
         self._running = True
-        self._show_help()
+        self._gameplay_paused = True
+        self._on_start()  # 先画出完整游戏画面
+        self._show_help_overlay()  # 再盖半透明遮罩 + 帮助文字
 
     def stop(self):
         self._running = False
@@ -47,46 +51,61 @@ class MinigameBase:
             self.canvas.destroy()
         self.canvas = None
 
-    # ---- 帮助系统 ----
+    # ---- 帮助系统（半透明悬浮面板） ----
 
-    def _show_help(self):
-        """绘制任务说明，等待双击后进入游戏"""
-        self.canvas.delete("all")
+    def _show_help_overlay(self):
+        """在已绘制的游戏画面上覆盖半透明遮罩 + 帮助文字"""
         w = self.canvas.winfo_width()
         h = self.canvas.winfo_height()
         if w < 50: w = 680
         if h < 50: h = 520
         cx, cy = w // 2, h // 2
 
-        self.canvas.create_text(cx, cy - 100,
-                                text=self.HELP_TITLE,
-                                fill="#e8e8e8",
-                                font=("Microsoft YaHei", 16, "bold"))
-        y = cy - 40
-        for line in self.HELP_LINES:
-            self.canvas.create_text(cx, y,
-                                    text=line,
-                                    fill="#cccccc",
-                                    font=("Microsoft YaHei", 11),
-                                    justify=tk.CENTER)
-            y += 32
-        self.canvas.create_text(cx, h - 50,
-                                text="双击鼠标或按空格键开始任务",
-                                fill="#666666",
-                                font=("Microsoft YaHei", 9))
-        self.canvas.bind("<Double-Button-1>", self._on_help_dismiss)
-        self.parent.winfo_toplevel().bind("<space>", self._on_help_space)
+        # 半透明遮罩
+        overlay = self.canvas.create_rectangle(
+            0, 0, w, h,
+            fill="#000000", stipple="gray50", outline="")
+        self._help_items.append(overlay)
 
-    def _on_help_space(self, event=None):
+        # 标题
+        t = self.canvas.create_text(cx, cy - 80,
+               text=self.HELP_TITLE, fill="#e8e8e8",
+               font=("Microsoft YaHei", 16, "bold"))
+        self._help_items.append(t)
+
+        # 说明行
+        y = cy - 20
+        for line in self.HELP_LINES:
+            t = self.canvas.create_text(cx, y,
+                   text=line, fill="#cccccc",
+                   font=("Microsoft YaHei", 11), justify=tk.CENTER)
+            self._help_items.append(t)
+            y += 32
+
+        # 退出提示
+        t = self.canvas.create_text(cx, h - 50,
+               text="双击鼠标或按空格键开始任务",
+               fill="#666666", font=("Microsoft YaHei", 9))
+        self._help_items.append(t)
+
+        # 绑定关闭事件
+        self.canvas.bind("<Double-Button-1>", self._dismiss_help)
+        self.parent.winfo_toplevel().bind("<space>", self._on_help_dismiss)
+
+    def _on_help_dismiss(self, event=None):
         if not self._running:
             return
-        self._on_help_dismiss(None)
+        self._dismiss_help(None)
 
-    def _on_help_dismiss(self, event):
+    def _dismiss_help(self, event):
+        """移除帮助面板，恢复游戏运行"""
         self.canvas.unbind("<Double-Button-1>")
         self.parent.winfo_toplevel().unbind("<space>")
-        self.canvas.delete("all")
-        self._on_start()
+        for item_id in self._help_items:
+            if self.canvas and self.canvas.winfo_exists():
+                self.canvas.delete(item_id)
+        self._help_items.clear()
+        self._gameplay_paused = False
 
     # ---- 子类覆写 ----
 
@@ -172,7 +191,9 @@ class MG1_PowerConnect(MinigameBase):
     # ===== 亮灭灯循环 =====
 
     def _start_light_cycle(self):
-        if not self._running:
+        if not self._running or self._gameplay_paused:
+            if self._gameplay_paused and self._running:
+                self._cycle_job = self.canvas.after(200, self._start_light_cycle)
             return
         self._phase = "light"
         self._apply_light_phase()
@@ -181,6 +202,9 @@ class MG1_PowerConnect(MinigameBase):
 
     def _start_dark_cycle(self):
         if not self._running:
+            return
+        if self._gameplay_paused:
+            self._cycle_job = self.canvas.after(200, self._start_dark_cycle)
             return
         self._phase = "dark"
         self._apply_dark_phase()
@@ -536,6 +560,9 @@ class MG1_PowerConnect(MinigameBase):
     def _start_timer(self):
         if not self._running:
             return
+        if self._gameplay_paused:
+            self._timer_id = self.canvas.after(200, self._start_timer)
+            return
         self._time_left -= 1
         if self.canvas and self.canvas.winfo_exists():
             self.canvas.itemconfig(self._timer_text,
@@ -691,6 +718,9 @@ class MG2_SolarReaction(MinigameBase):
 
     def _spawn_flash(self):
         if not self._running:
+            return
+        if self._gameplay_paused:
+            self._spawn_timer = self.canvas.after(200, self._spawn_flash)
             return
         self._flash_count += 1
         if self._flash_count > self.TOTAL_FLASHES:
@@ -1061,6 +1091,9 @@ class MG3_PlatformBalance(MinigameBase):
     def _tick(self):
         if not self._running:
             return
+        if self._gameplay_paused:
+            self._timer_id = self.canvas.after(200, self._tick)
+            return
         self._elapsed += 0.05
 
         # 漂移
@@ -1188,6 +1221,9 @@ class MG4A_SeabirdDodge(MinigameBase):
 
     def _loop(self):
         if not self._running: return
+        if self._gameplay_paused:
+            self.canvas.after(200, self._loop)
+            return
         if not self.canvas or not self.canvas.winfo_exists():
             return
         self._elapsed += self.LOOP_INTERVAL / 1000.0
@@ -1280,7 +1316,7 @@ class MG4B5_DarkCircuit(MinigameBase):
         "4、上下两屏皆胜则任务成功",
     ]
 
-    def _show_help(self):
+    def _on_start(self):
         if self.TIME_LIMIT == 45:
             self.HELP_TITLE = "最终供电重启任务"
             self.HELP_LINES = [
@@ -1289,7 +1325,9 @@ class MG4B5_DarkCircuit(MinigameBase):
                 "3、能量条归零则收缩加速，过热4秒冷却",
                 "4、45秒时限，上下两屏皆胜则任务成功",
             ]
-        super()._show_help()
+        self._build_ui()
+        self._bind_events()
+        self._start_timer()
 
     # — 配电部分 —
     PAIRS = [
@@ -1385,12 +1423,18 @@ class MG4B5_DarkCircuit(MinigameBase):
 
     def _start_light_cycle(self):
         if not self._running: return
+        if self._gameplay_paused:
+            self._cycle_job = self.canvas.after(200, self._start_light_cycle)
+            return
         self._phase = "light"
         self._apply_light_phase()
         self._cycle_job = self.canvas.after(self.LIGHT_DURATION, self._start_dark_cycle)
 
     def _start_dark_cycle(self):
         if not self._running: return
+        if self._gameplay_paused:
+            self._cycle_job = self.canvas.after(200, self._start_dark_cycle)
+            return
         self._phase = "dark"
         self._apply_dark_phase()
         self._cycle_job = self.canvas.after(self.DARK_DURATION, self._start_light_cycle)
@@ -1696,6 +1740,9 @@ class MG4B5_DarkCircuit(MinigameBase):
     def _start_shrink_loop(self):
         """50ms 帧循环：暗红收缩动画"""
         if not self._running or self._bot_won: return
+        if self._gameplay_paused:
+            self.canvas.after(200, self._start_shrink_loop)
+            return
         if self._shrink >= 1.0:
             self._do_shrink_death()
             return
@@ -1797,6 +1844,9 @@ class MG4B5_DarkCircuit(MinigameBase):
 
     def _energy_tick(self):
         if not self._running or self._bot_won: return
+        if self._gameplay_paused:
+            self.canvas.after(200, self._energy_tick)
+            return
         self._energy = max(0, self._energy - 1)
         self._update_energy_bar()
         # 能量归零时收缩加速已在 _start_shrink_loop 处理
@@ -1818,6 +1868,9 @@ class MG4B5_DarkCircuit(MinigameBase):
 
     def _tick_timer(self):
         if not self._running: return
+        if self._gameplay_paused:
+            self._timer_id = self.canvas.after(200, self._tick_timer)
+            return
         self._time_left -= 1
         if self.canvas and self.canvas.winfo_exists():
             self.canvas.itemconfig(self._timer_text,
