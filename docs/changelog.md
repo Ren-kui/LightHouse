@@ -1,7 +1,25 @@
 ﻿# 代码修改日志
 
 > 维护者：FD | 记录每次代码文件的增删改
-> 最后更新：2026-05-15
+> 最后更新：2026-05-17
+
+| 日期 | 文件 | 改动类型 | 描述 |
+|------|------|----------|------|
+| 2026-05-17 | `data/chapter_01~05.json` | 修改 | M8 变量平衡：生存意志4处+2→+1+ch03-1+ch04-1；好奇心11处+2→+1+6处减项；信任水彩画/MG失败-1；忠诚ch04/05新增2选项 |
+| 2026-05-17 | `data/items.json` | 修改 | wangchao_drawing 物品 +curiosity+1 & trust-1 |
+| 2026-05-17 | `data/collection.json` | 新建 | 结局收集数据（8结局×3字段） |
+| 2026-05-17 | `src/minigame_base.py` | 修改 | MG3 B+C难度+画布扩大+鼠标归正；全小游戏帮助面板（半透明遮罩+暂停守卫9处） |
+| 2026-05-17 | `src/main_window.py` | 修改 | 结局收集UI（标题入口+8格+详情+点击）；备忘录提示+脉冲；结局画面修复；[key]标记渲染修复；物品(新)标记；D1日记不显示；W002-4/5/6；存档4+1 |
+| 2026-05-17 | `src/main.py` | 修改 | ItemManager集成+结局收集入口+结局记录+collection持久化+存档4+1 |
+| 2026-05-17 | `src/story_engine.py` | 修改 | check_ending物品判定+set_items/remove_items/item_condition+有效值穿透 |
+| 2026-05-17 | `src/item_manager.py` | 新建 | ItemManager类（8物品CRUD+carry_effects+穿透） |
+| 2026-05-17 | `docs/decisions.md` | 修改 | D046 M7启动 + D047 结局物品矩阵 + D048 ItemManager架构 |
+| 2026-05-17 | `docs/design.md` | 修改 | §2.3~§2.7 变量+MG3+结局表+物品表+模块架构 |
+| 2026-05-17 | `docs/work_standards.md` | 修改 | W002-4/5/6 + W008② + W011 |
+| 2026-05-17 | `docs/text_markup_spec.md` | 修改 | §5引号规范 + §6标记歧义 + §7 [key]标记 |
+| 2026-05-17 | `.opencode/skills/lighthouse/SKILL.md` | 新建 | Lighthouse 项目 Skill（薄方案） |
+| 2026-05-17 | `tests/test_ending_reachability.py` | 修改 | 适配物品系统（G/B/D加物品条件） |
+| 2026-05-17 | `tests/test_state_manager.py, test_save_integration.py` | 修改 | 适配 trust/survival_will 初始值+items字段 |
 
 | 日期 | 文件 | 改动类型 | 描述 |
 |------|------|----------|------|
