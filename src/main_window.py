@@ -50,6 +50,7 @@ class MainWindow:
         # 公开回调（由 Game 类绑定）
         self.on_menu_new_game = None
         self.on_menu_continue = None
+        self.on_menu_collection = None
         self.on_choice_made = None
         self.on_text_complete = None
         self.on_toggle_panel = None
@@ -320,7 +321,7 @@ class MainWindow:
         self.text_area.tag_configure("title_fade",
             foreground="#cc0000",
             font=("Microsoft YaHei", 22, "bold"))
-        self._show_menu(["新游戏", "继续游戏", "退出"])
+        self._show_menu(["新游戏", "继续游戏", "结局收集", "退出"])
 
 
     def _show_menu(self, labels: list, styles: list = None):
@@ -373,6 +374,8 @@ class MainWindow:
                 cb = lambda: self.on_menu_new_game and self.on_menu_new_game()
             elif label == "继续游戏":
                 cb = lambda: self.on_menu_continue and self.on_menu_continue()
+            elif label == "结局收集":
+                cb = lambda: self.on_menu_collection and self.on_menu_collection()
             elif label == "退出":
                 cb = self.root.destroy
             elif label == "继续...":
@@ -657,6 +660,11 @@ class MainWindow:
         # 结局画面模式：翻页触发 on_text_complete 回调
         if getattr(self, '_ending_screen', False):
             self._ending_screen = False
+            if self.on_text_complete:
+                self.on_text_complete()
+            return "break"
+        # 结局收集模式：空格/回车返回标题
+        if getattr(self, '_col_mode', None):
             if self.on_text_complete:
                 self.on_text_complete()
             return "break"
@@ -1418,6 +1426,123 @@ class MainWindow:
         self.root.after(800, lambda: self._tab_hint.config(fg="#ccaa44"))
         self.root.after(1200, lambda: self._tab_hint.config(fg="#555555"))
         self._bubble_job = self.root.after(6000, self._hide_bubble)
+
+    # ========== 结局收集界面 ==========
+
+    def show_collection_screen(self, collection_data: dict):
+        """结局收集主界面：4×2 格子，已解锁白色/可点击，未解锁灰色/不可点击"""
+        self._in_title_screen = False
+        self.clear_choices()
+        self.text_area.config(state=tk.NORMAL)
+        self.text_area.delete("1.0", tk.END)
+        self.text_area.tag_configure("col_title", font=("Microsoft YaHei", 16, "bold"),
+                                     foreground="#e8e8e8", justify=tk.CENTER)
+        self.text_area.tag_configure("col_desc", font=("Microsoft YaHei", 9),
+                                     foreground="#555555", justify=tk.CENTER)
+        self.text_area.tag_configure("col_unlocked", font=("Microsoft YaHei", 11, "bold"),
+                                     foreground="#e8e8e8", background="#1a1a1a",
+                                     justify=tk.CENTER, lmargin1=20, lmargin2=20,
+                                     spacing1=6, spacing3=6)
+        self.text_area.tag_configure("col_locked", font=("Microsoft YaHei", 11),
+                                     foreground="#333333", background="#0a0a0a",
+                                     justify=tk.CENTER, lmargin1=20, lmargin2=20,
+                                     spacing1=6, spacing3=6)
+        self.text_area.tag_configure("col_back", font=("Microsoft YaHei", 9),
+                                     foreground="#888888", justify=tk.CENTER,
+                                     spacing1=20)
+        endings = collection_data.get("endings", {})
+        order = ["G", "death", "F", "A", "E", "B", "D", "C"]
+        unlocked = collection_data.get("unlocked", [])
+
+        self.text_area.insert(tk.END, "\n\n")
+        self.text_area.insert(tk.END, "结局收集\n", "col_title")
+        self.text_area.insert(tk.END, "\n")
+
+        # 4×2 布局：每两个结局一行
+        for row_idx in range(4):
+            line = ""
+            for col_idx in range(2):
+                idx = row_idx * 2 + col_idx
+                if idx >= len(order):
+                    break
+                eid = order[idx]
+                info = endings.get(eid, {})
+                if eid in unlocked:
+                    line += info.get("name", eid)
+                else:
+                    line += "？？？"
+                if col_idx == 0:
+                    line += "    │    "
+            # 判断用哪个 tag（取每行第一个结局的解锁状态）
+            first_eid = order[row_idx * 2]
+            tag = "col_unlocked" if first_eid in unlocked else "col_locked"
+            self.text_area.insert(tk.END, line + "\n", tag)
+        self.text_area.insert(tk.END, "\n")
+        self.text_area.insert(tk.END, "▼ 空格 / 回车返回    ▸ 点击已解锁结局查看详情\n", "col_back")
+        self.text_area.config(state=tk.DISABLED)
+        # 绑定回调
+        self._collection_data = collection_data
+        self._collection_unlocked = unlocked
+        self._collection_endings = endings
+        self._collection_order = order
+        self._col_mode = "main"
+
+    def show_collection_detail(self, ending_id: str):
+        """结局收集二级界面：路线+条件"""
+        info = self._collection_endings.get(ending_id, {})
+        self.text_area.config(state=tk.NORMAL)
+        self.text_area.delete("1.0", tk.END)
+        self.text_area.tag_configure("col_det_name", font=("Microsoft YaHei", 18, "bold"),
+                                     foreground="#cc0000", justify=tk.CENTER)
+        self.text_area.tag_configure("col_det_label", font=("Microsoft YaHei", 9, "bold"),
+                                     foreground="#888888", justify=tk.LEFT)
+        self.text_area.tag_configure("col_det_text", font=("Microsoft YaHei", 9),
+                                     foreground="#cccccc", justify=tk.LEFT,
+                                     spacing1=2, spacing3=4)
+        self.text_area.tag_configure("col_det_back", font=("Microsoft YaHei", 9),
+                                     foreground="#888888", justify=tk.CENTER,
+                                     spacing1=16)
+        self.text_area.insert(tk.END, "\n\n")
+        self.text_area.insert(tk.END, info.get("name", ending_id) + "\n", "col_det_name")
+        self.text_area.insert(tk.END, "\n")
+        self.text_area.insert(tk.END, "变量条件\n", "col_det_label")
+        self.text_area.insert(tk.END, info.get("var_conditions", "") + "\n", "col_det_text")
+        self.text_area.insert(tk.END, "\n")
+        self.text_area.insert(tk.END, "物品条件\n", "col_det_label")
+        self.text_area.insert(tk.END, info.get("item_conditions", "") + "\n", "col_det_text")
+        self.text_area.insert(tk.END, "\n")
+        self.text_area.insert(tk.END, "可达路线\n", "col_det_label")
+        self.text_area.insert(tk.END, info.get("route", "") + "\n", "col_det_text")
+        self.text_area.insert(tk.END, "\n\n")
+        self.text_area.insert(tk.END, "▸ 返回收集列表    ▼ 空格返回标题\n", "col_det_back")
+        self.text_area.config(state=tk.DISABLED)
+        self._col_mode = "detail"
+
+    def _on_collection_click(self, event):
+        """处理结局收集界面的点击"""
+        if not hasattr(self, '_col_mode'):
+            return
+        if self._col_mode == "detail":
+            # 返回收集列表
+            self.show_collection_screen(self._collection_data)
+            return
+        if self._col_mode != "main":
+            return
+        # 主界面：判断点击位置对应哪个结局
+        index = self.text_area.index("@{},{}".format(event.x, event.y))
+        line_num = int(index.split(".")[0])
+        # 行 3-6 对应 4 行结局（标题占前 2 行）
+        row_idx = line_num - 3
+        if row_idx < 0 or row_idx >= 4:
+            return
+        # 检测点击在左半还是右半
+        col_idx = 0 if event.x < self.text_area.winfo_width() // 2 else 1
+        idx = row_idx * 2 + col_idx
+        if idx >= len(self._collection_order):
+            return
+        eid = self._collection_order[idx]
+        if eid in self._collection_unlocked:
+            self.show_collection_detail(eid)
 
     def _hide_bubble(self):
         if hasattr(self, '_notify_label') and self._notify_label:

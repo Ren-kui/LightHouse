@@ -36,6 +36,11 @@ ch06_ending_map = {
     "C": "ch06_ending_C",
     "D": "ch06_ending_D",
 }
+# 逆映射（节点 → 结局 ID）
+ch06_ending_reverse = {v: k for k, v in ch06_ending_map.items()}
+ch06_ending_reverse["ch04_darkness_death"] = "death"
+ch06_ending_reverse["ch05_mg5_death"] = "death"
+ch06_ending_reverse["ch05_ending_e_03"] = "E"
 
 # 结局名称展示（名称 + 一行描述）
 ENDING_DISPLAY = {
@@ -82,6 +87,7 @@ class Game:
         # 绑定 UI 回调
         self.window.on_menu_new_game = self.cmd_new_game
         self.window.on_menu_continue = self.cmd_continue
+        self.window.on_menu_collection = self.cmd_collection
         self.window.on_choice_made = self.cmd_choice
         self.window.on_text_complete = self._on_text_done
         self.window.on_save_clicked = self.cmd_save
@@ -127,6 +133,34 @@ class Game:
         self._diary_data = self._load_diary()
         self._last_diary_day = 0       # 上次生成日记的天数（防止预知）
         self._diary_snapshots = {}     # 日记快照 {day: text}（防止变量回溯修改）
+
+        # 结局收集数据
+        self._collection_data = self._load_collection_data()
+        self._unlocked_endings = self._load_unlocked_endings()
+        self._save_collection()  # 确保文件存在
+
+    def _load_collection_data(self):
+        try:
+            with open(os.path.join("data", "collection.json"), "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"endings": {}}
+
+    def _load_unlocked_endings(self):
+        try:
+            path = os.path.join("data", "unlocked_endings.json")
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
+
+    def _save_collection(self):
+        path = os.path.join("data", "unlocked_endings.json")
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(list(self._unlocked_endings), f, ensure_ascii=False, indent=2)
+        # 写入后验证
+        with open(path, "r", encoding="utf-8") as f:
+            json.load(f)
 
     def _load_diary(self):
         """加载日记数据"""
@@ -221,6 +255,27 @@ class Game:
         except FileNotFoundError:
             self.story.load_chapter(1)
         self._display_node()
+
+    def cmd_collection(self):
+        """标题界面 → 结局收集"""
+        if self._fsm != "TITLE":
+            return
+        data = dict(self._collection_data)
+        data["unlocked"] = list(self._unlocked_endings)
+        self.window.show_collection_screen(data)
+        # 收集模式下点击 text_area 触发选择
+        self.window.text_area.unbind("<Button-1>")
+        self.window.text_area.bind("<Button-1>", lambda e: self.window._on_collection_click(e))
+        # 收集模式退出时返回标题
+        self.window.on_text_complete = self._on_collection_return
+
+    def _on_collection_return(self):
+        self.window.text_area.unbind("<Button-1>")
+        self.window.text_area.bind("<Button-1>", self.window._on_text_advance)
+        self.window._col_mode = None
+        self.window.on_text_complete = self._on_text_done
+        self._fsm = "TITLE"
+        self.window.show_title_screen(self.TITLE_QUOTE)
 
     def cmd_choice(self, index: int):
         """选项点击 → 处理普通选项 / multi_click / 小游戏触发"""
@@ -398,6 +453,11 @@ class Game:
     def _show_ending_result(self, node_id: str):
         """结局链末尾：展示结局名称 + 描述 + D14 日记（如适用）"""
         name, desc = ENDING_DISPLAY.get(node_id, ("结局", "故事在此结束。"))
+        # 记录已解锁结局
+        ending_id = ch06_ending_reverse.get(node_id)
+        if ending_id and ending_id not in self._unlocked_endings:
+            self._unlocked_endings.append(ending_id)
+            self._save_collection()
         # D14 日记（仅当玩家到达 D14 时）
         diary_text = ""
         if self.story.day >= 14:

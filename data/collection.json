@@ -1,0 +1,60 @@
+{
+  "endings": {
+    "G": {
+      "name": "荒诞 · 被带走",
+      "desc": "塔不再需要灯了。它有你。",
+      "var_conditions": "无（物品触发）",
+      "item_conditions": "不锈的锡兵 + 自鸣八音盒 + 暖弹珠",
+      "route": "ch02 探索时拾取锡兵 → ch03 地下室三选一拿走八音盒 → ch04 梦境醒后选暖弹珠 → D13 ch06_ending_check 自动触发"
+    },
+    "death": {
+      "name": "灯塔未解死亡报告",
+      "desc": "现场无结构性损伤。配电系统正常。一人失踪。",
+      "var_conditions": "无（小游戏失败触发）",
+      "item_conditions": "无",
+      "route": "D9 MG4B 黑暗收缩失败 或 D12 MG5 黑暗收缩失败 → 死亡报告 → 结局画面"
+    },
+    "F": {
+      "name": "被背叛 · 死在黑暗里",
+      "desc": "它接了。",
+      "var_conditions": "好奇心≥7 · 理智≤3 · 信任≤3 · 忠诚≤2",
+      "item_conditions": "无",
+      "route": "全程选高好奇心选项 + 降低信任/忠诚的选项 → D13 ch06_ending_check 自动判定"
+    },
+    "A": {
+      "name": "疯狂 · 独自对话",
+      "desc": "补给船走了。你开始听懂塔在说什么。",
+      "var_conditions": "好奇心≥7 · 理智≤3 · 信任≥5 或 忠诚≥3",
+      "item_conditions": "无（邪恶木雕可助推理智走低）",
+      "route": "高好奇路径 + 保留一条人际关系（信任≥5 或 忠诚≥3）→ D13 ch06_ending_check 自动判定"
+    },
+    "E": {
+      "name": "提前逃离 · 永不知答案",
+      "desc": "你放弃了知道。你在知道和活着之间选了后者。",
+      "var_conditions": "生存意愿≥8 · 理智≤4 · 信任≤4（ch05 特殊节点）",
+      "item_conditions": "无",
+      "route": "全程走生存路线 + 降低信任 → D12 ch05_d12_start 选择'跑到通讯室联系补给船' → 提前登船"
+    },
+    "B": {
+      "name": "一起逃离 · 他断开了开关",
+      "desc": "十四天之后你没有失去任何一个人。",
+      "var_conditions": "好奇心≥6 · 理智≥6 · 信任≥7 · 忠诚≥4",
+      "item_conditions": "纯黑钢笔",
+      "route": "高好奇但避开理智伤害 + 帮助张海生 + 闲逛全清获得钢笔 → D13 ch06_ending_check 自动判定"
+    },
+    "D": {
+      "name": "被杀 · 离开前一夜",
+      "desc": "掌心是空的。",
+      "var_conditions": "好奇心≤3 · 理智≥6 · 信任≤3 · 忠诚≤2",
+      "item_conditions": "张望潮的物理课本",
+      "route": "全程保守路径 + 低忠诚(≤2) → ch03 夹层偷走课本 → D13 ch06_ending_check 自动判定"
+    },
+    "C": {
+      "name": "平安离开 · 什么也没意识到",
+      "desc": "你平安地离开了。",
+      "var_conditions": "好奇心≤3 · 理智≥6",
+      "item_conditions": "无",
+      "route": "全程保守 + 不偷课本 → D13 ch06_ending_check 自动判定"
+    }
+  }
+}
